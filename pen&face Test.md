@@ -368,8 +368,6 @@ console.log('end');
 }
 ````
 
-虚拟dom怎样渲染上去的
-
 ## v-if VS v-show
 
 - v-if 是“真实的”按条件渲染，因为它确保了**在切换时，条件区块内的事件监听器和子组件都会被销毁与重建**
@@ -383,24 +381,131 @@ console.log('end');
 ## \<style scoped>中的scoped的作用是？原理是？加和不加的区别
 
 - 1、什么是scoped，为什么要用？
-    当一个style标签拥有scoped属性时，它的CSS样式就只能作用于当前的组件，通过该属性，可以使得组件之间的样式不互相污染。
+  vue-cli 脚手架规范,**VUE打包只生成一个 js 文件,一个 CSS 文件**
+  当一个style标签拥有scoped属性时，它的CSS样式就只能作用于当前的组件，通过该属性，可以使得组件之间的样式不互相污染。
 
-- 2、scoped的原理
-  ①为组件实例生成一个唯一标识，给组件中的每个标签对应的dom元素添加一个标签属性，data-v-xxxx
+- 2、scoped的原理（）
+  ①为组件实例生成一个唯一标识，给组件中的每个**标签对应的dom元素添加一个标签属性**，data-v-xxxx（也就是说：只要\<style scoped>定义的选择器选中了DOM元素，则该DOM元素有个标签属性 data-v-xxx，该组件的所有标签属性都一样，都为同一个data-v-xxx）
   ②给\<style scoped>中的每个选择器的最后一个选择器添加一个属性选择器，原选择器[data-v-xxxx]，如：原选择器为.container #id div，则更改后选择器为.container #id div[data-v-xxxx]
 
-js 与 ts 区别
-前端框架里面的key
-跨域
-事件委托
+- 3、样式穿透
+  
+````HTML
+<style scoped>
+    div{
+        color: red;
+    } 
+    div h1 span{
+      color:green !important;
+    }
+</style>
 
-虚拟dom的好处，以及虚拟dom的本质
+页面转换样式如下
+<style>
+    div[data-v-789]{
+        color: red;
+    } 
+    div h1 span[data-v-789]{
+      color:green !important;
+    }
+</style>
 
-## 箭头函数与普通函数的区别
+DOM元素性质如下
+<body>
+  <div data-v-789>
+    ddsfsf
+        <h1 data-v-789>h111
+            <span>
+                span
+            </span>
+        </h1>
+  </div>
+````
 
-箭头函数中的this问题
-为什么不能用call aplly bind来改变箭头函数的this指向
-定时请求数据出错
-大屏展示界面的适配
-如何把ts jsx vue转换成浏览器能识别的
-css用了哪些单位
+问题出现：
+>>&nbsp; div为正在开发组件的元素（父元素），h1为引入的外部组件（子元素），则在页面中最终会呈现如上代码一样的效果，即**只有子组件的根元素有跟父元素一样的属性标签**（即scoped只会作用至子组件根节点），但是**子组件的非根元素样式并没有属性标签**，div h1 span[data-v-789]选择器选择不到span，若子组件有css span{color:pink},最终span文字颜色为粉红色，若子组件无css样式，则span颜色为红色（继承父元素）
+
+我们**如何在父组件中的scope里，修改子组件的css样式**？（既可以在该组件中生效，又不影响其他组件）
+
+解决办法: 样式穿透 :deep()
+
+````HTML
+<style scoped>
+    div{
+        color: red;
+    } 
+    :deep(div h1 span){
+      color:green !important;
+    }
+</style>
+
+页面转换样式如下:
+<style>
+    div[data-v-789]{
+        color: red;
+    } 
+    div[data-v-789] h1 span{
+      color:green !important;
+    }
+</style>
+
+DOM元素性质如下:
+<body>
+  <div data-v-789>
+    ddsfsf
+        <h1 data-v-789>h111
+            <span>
+                span
+            </span>
+        </h1>
+  </div>
+````
+
+## js 与 ts 区别
+
+## 前端框架里面的key的作用
+
+- **相同的key react认为是同一个组件**，这样**后续相同的key对应组件都不会被创建**。在render函数执行的时候，**新旧两个虚拟DOM会进行对比**:
+  **如果两个元素有不同的key**，那么在前后两次渲染中就会被认为是不同的元素，这时候**旧的那个元素会被销毁，新的元素会被创建**
+  **如果是相同的key**，**且元素类型相同**， **若元素属性有所变化，则React只更新组件对应的属性，这种情况下，性能开销会相对较小。**
+
+*问题：需要把keys设置为全局唯一吗？*
+  key是用来进行diff算法的时候进行同层比较,**key只需要在兄弟节点之间唯一**
+
+## 跨域
+
+## 事件委托
+
+## 为什么要从class组件转向function组件（hooks出现的意义）
+
+<a href='https://zh-hans.reactjs.org/docs/hooks-intro.html'>官方解释：</a>
+1、在组件之间<a href='https://blog.csdn.net/qq_39207948/article/details/113819803'>复用状态逻辑</a>很难
+2、复杂组件变得难以理解（生命周期处理）
+
+>> <a href='https://www.zhihu.com/question/343314784/answer/970219202'>函数式组件的心智模型更加“声明式”</a>，hooks（主要是useEffect）取代了生命周期的概念（减少API），让开发者的代码更加“声明化”：
+旧的思维：“我在这个生命周期要检查props.A和state.B（props和state），如果改变的话就触发xxx副作用”。这种思维在后续修改逻辑的时候很容易漏掉检查项，造成bug。
+新的思维：“我的组件有xxx这个副作用，这个副作用依赖的数据是props.A和state.B”。从过去的命令式转变成了声明式编程。
+其实仔细想一想，人们过去使用生命周期不就是为了判断执行副作用的时机吗？现在hooks直接给你一个声明副作用的API，使得生命周期变成了一个“底层概念”，无需开发者考虑。开发者工作在更高的抽象层次上了。
+类似的道理，除了声明副作用的API，react还提供了声明“密集计算”的API（useMemo），取代了过去“在生命周期做dirty检查，将计算结果缓存在state里”的做法。React内核帮你维护缓存，你只需要声明数据的计算逻辑以及数据的依赖。
+
+3、难以理解的 class（学习成本+this）
+4、Hook避免了class需要的额外开支，像是创建类实例和在构造函数中绑定事件处理器的成本。
+
+## 为什么要用虚拟DOM
+
+>>虚拟dom:就是一个普通的js对象
+
+<a href='https://www.csdn.net/tags/NtTakgwsOTQxMDYtYmxvZwO0O0OO0O0O.html#DOM_47'>详解</a>
+1、真实的DOM运行是很慢的，其元素非常庞大，页面的性能问题，大部分都是由DOM操作引起的，**真实的DOM节点，哪怕一个最简单的div也包含着很多属性，由此可见，操作真实DOM的代价仍旧是昂贵的**，频繁操作还是会出现页面卡顿，影响用户的体验
+
+2、虚拟 dom 是相对于浏览器所渲染出来的真实 dom而言的，在react，vue等技术出现之前，我们要改变页面展示的内容**只能通过遍历查询 dom 树的方式找到需要修改的 dom 然后修改样式行为或者结构**，来达到更新 ui 的目的，这种方式相当消耗计算资源，因为每次查询 dom 几乎都需要遍历整颗 dom 树，如果建立一个与 dom 树对应的虚拟 dom 对象（ js 对象），**以对象嵌套的方式来表示 dom 树及其层级结构，那么每次 dom 的更改就变成了对 js 对象的属性的增删改查，这样一来查找 js 对象的属性变化要比查询 dom 树的性能开销小**
+
+3、通过diff算法对比新旧vdom之间的差异，可以批量的、最小化的执行 dom操作，从而提高性能。
+
+## 箭头函数与普通函数的区别（见js.md）
+
+## 箭头函数中的this问题（见js.md）
+
+## 如何把ts jsx vue转换成浏览器能识别的语言
+
+需要安装一些特殊的依赖库，需要把typescript、jsx、vue翻译成JavaScript语言浏览器才能运行出效果（如使用Babel将jsx编译成为浏览器支持的JavaScript）
