@@ -502,6 +502,10 @@ DOM元素性质如下:
 
 3、通过diff算法对比新旧vdom之间的差异，可以批量的、最小化的执行 dom操作，从而提高性能。
 
+## 虚拟DOM是如何渲染到页面的
+
+  <a href="https://cn.vuejs.org/guide/extras/rendering-mechanism.html">Vue的渲染机制</a>
+
 ## 箭头函数与普通函数的区别（见js.md）
 
 ## 箭头函数中的this问题（见js.md）
@@ -509,3 +513,7 @@ DOM元素性质如下:
 ## 如何把ts jsx vue转换成浏览器能识别的语言
 
 需要安装一些特殊的依赖库，需要把typescript、jsx、vue翻译成JavaScript语言浏览器才能运行出效果（如使用Babel将jsx编译成为浏览器支持的JavaScript）
+
+## 前端框架的diffing算法
+
+<a href="https://zh-hans.reactjs.org/docs/reconciliation.html#the-diffing-algorithm">React diffing</a>
