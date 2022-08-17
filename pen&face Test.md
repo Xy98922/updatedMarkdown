@@ -517,3 +517,7 @@ DOM元素性质如下:
 ## 前端框架的diffing算法
 
 <a href="https://zh-hans.reactjs.org/docs/reconciliation.html#the-diffing-algorithm">React diffing</a>
+
+## 通常情况下，一个URL的格式是：协议：//主机：端口/路径名称?搜索条件#哈希标识
+
+## 0.2 - 0.1 ==？0.1   、0.3 - 0.2 == ?0.1]
