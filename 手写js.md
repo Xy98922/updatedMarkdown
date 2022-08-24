@@ -219,35 +219,24 @@ const api=(method,url,params)=>{
         promise.then(data=>resolve(data)).catch(e=>console.log(e));
     })
 }
-//防抖函数(非立即执行:触发事件后函数不会立即执行，而是在停止触发行为timedelay后执行)
-function debounce(fn,timedelay){
-    let timer;
-    return function(){  //返回的函数 this 指向不变;以及依旧能接受到event参数
-       clearTimeout(timer)
-       timer=setTimeout(()=>{
-       return fn.call(this,...arguments);
-       },timedelay)
-        }  
-}
-//防抖函数(立即执行:触发事件后函数立即执行，然后timedelay时间内不触发事件才能继续执行函数)
-function debounce1(fn,timedelay){
-    let timer;
+//防抖函数
+function debounce(f,time,...arg){
+    let d=new Date()
     return function(){
-        clearTimeout(timer);
-        if(!timer) fn.call(this,...arguments);
-        timer=setTimeout(()=>{
-         timer=null;
-        },timedelay)
+        if(new Date()-d>time){
+            f.call(this,...arg)
+        }
+        d=new Date()
     }
 }
 //节流函数
 function throttle(fn,timedelay) {
-    let done = 1;		            //记录是否可执行
+    let done = 1;            //记录是否可执行
     return function () {
         if(done) {
             fn.call(this,...arguments)
-            done = 0		        //执行后置为不可执行
-            setTimeout(()=>{		//计时结束后再置为可执行
+            done = 0       //执行后置为不可执行
+            setTimeout(()=>{//计时结束后再置为可执行
                 done =1
             }, timedelay)
         }
