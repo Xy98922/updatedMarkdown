@@ -557,3 +557,41 @@ DOM元素性质如下:
 “1-[1-3]” —— 表示“1-1”、“1-2”或者“1-3”
 但是，即使在字符集“[…]”里，却非连续字符之间，也失去了特殊含义：
 “1[-1]” —— 表示“1-”或者“11”，此时使用转义符\也不会影响其原本的匹配
+
+## 函数返回包含n个不重复的大于等于2小于32的随机数的数组
+
+````js {.font}
+function f(n){
+  let arr=new Array(n)
+  let obj={}
+  for(let i=0;i<n;i++){
+    arr[i]=Math.floor(Math.random()*30)+2
+    while(obj[arr[i]]!==undefined){
+      arr[i]=Math.floor(Math.random()*30)+2
+    }
+    obj[arr[i]]=1
+  }
+return arr
+}
+
+function f(n){
+   let s=new Set()
+   while(s.size!==n){
+        s.add(Math.floor(Math.random()*30)+2)
+  }
+    return [...s]
+}
+
+ function f(n){
+  let arr=new Array(n)
+    let obj={}
+    while(arr.length<n){
+        const temp=Math.floor(Math.random()*30)+2
+        if(obj[temp]==undefined){
+     arr.push(temp)
+          obj[temp]=1
+    }
+  }
+  return arr
+}
+````
