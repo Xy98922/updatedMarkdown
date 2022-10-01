@@ -588,10 +588,47 @@ function f(n){
     while(arr.length<n){
         const temp=Math.floor(Math.random()*30)+2
         if(obj[temp]==undefined){
-     arr.push(temp)
+          arr.push(temp)
           obj[temp]=1
     }
   }
   return arr
 }
+````
+
+## promise实现，红色三秒打印一次、绿色两秒打印一次、黄色一秒打印一次
+
+````js {.font}
+  function red() {
+      console.log("red");
+  }
+  function green() {
+      console.log("green");
+  }
+  function yellow() {
+      console.log("yellow");
+  }
+
+  function light(time,name){
+      return new Promise(resolve=>{
+          setTimeout(()=>{
+                  name()
+                  resolve()
+              },time)
+      })
+  }
+  
+  function step(){
+      Promise.resolve().then(()=>{
+          return light(3000,red)
+      }).then(()=>{
+          return light(2000,green)
+      }).then(()=>{
+          return light(1000,yellow)
+      }).then(()=>{
+          // 黄色循环完毕再调用一次step，实现不断循环打印
+          return step()
+      })
+  }
+  step()
 ````

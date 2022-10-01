@@ -266,10 +266,11 @@ q
 
 - .valueOf()，**返回指定对象的原始值**
 - .toString()，**返回一个表示该对象的字符串**
-  - ---
-  - ---
-  - ---
-  - ---
+
+  ----
+  ----
+  ----
+  ----
 
 ## Object内置方法 Object.xxx
 
@@ -299,10 +300,93 @@ q
 - Object.keys()， **返回数组[自身可枚举属性]**，数组中属性名的排列顺序和正常循环遍历该对象时返回的顺序一致(不走原型链)
 
 - Object.values() ，**返回数组[对象自身可枚举属性值]**，值的顺序与使用for...in循环的顺序相同(不走原型链)
-  
--  ---
--  ---
--  ---
+
+<section aria-labelledby="统计表"><h2 id="统计表"><a href="#统计表" title="Permalink to 统计表">统计表</a></h2><div class="section-content"><div class="table-scroll"><table>
+  <thead>
+    <tr>
+      <th></th>
+      <th><code>in</code></th>
+      <th><code>for..in</code></th>
+      <th><code>obj.hasOwnProperty</code></th>
+      <th><code>obj.propertyIsEnumerable</code></th>
+      <th><code>Object.keys</code></th>
+      <th><code>Object.getOwnPropertyNames</code></th>
+      <th><code>Object.getOwnPropertyDescriptors</code></th>
+      <th><code>Reflect.ownKeys()</code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>自身的可枚举属性</td>
+      <td>true</td>
+      <td>true</td>
+      <td>true</td>
+      <td>true</td>
+      <td>true</td>
+      <td>true</td>
+      <td>true</td>
+      <td>true</td>
+    </tr>
+    <tr>
+      <td>自身的不可枚举属性</td>
+      <td>true</td>
+      <td>false</td>
+      <td>true</td>
+      <td>false</td>
+      <td>false</td>
+      <td>true</td>
+      <td>true</td>
+      <td>true</td>
+    </tr>
+    <tr>
+      <td>自身的 Symbol 键</td>
+      <td>true</td>
+      <td>false</td>
+      <td>true</td>
+      <td>true</td>
+      <td>false</td>
+      <td>false</td>
+      <td>true</td>
+      <td>true</td>
+    </tr>
+    <tr>
+      <td>继承的可枚举属性</td>
+      <td>true</td>
+      <td>true</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+    </tr>
+    <tr>
+      <td>继承的不可枚举属性</td>
+      <td>true</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+    </tr>
+    <tr>
+      <td>继承的 Symbol 键</td>
+      <td>true</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+      <td>false</td>
+    </tr>
+  </tbody>
+</table></div></div></section>
+----
+----
+----
 
 ## 用运算符来理解隐式转换(==类型不一致才会转换==)
 
@@ -903,4 +987,9 @@ console.log(str.match(reg));//=>["2","o","1","9","2","0","2","0"]
 *function(item,index)* (replacement)
 一个用来创建新子字符串的函数，该函数的返回值将替换掉第一个参数匹配到的结果。
 **返回值**
-一个部分或全部匹配由替代模式所取代的新的字符串。
+一个部分或全部匹配由替代模式所取代的新的字符串
+
+## new一个类的执行顺序
+
+**1.先父类,后子类**
+**2.先静态，后非静态**

@@ -22,12 +22,12 @@
    ----
 
 >>- 3、align-content: stretch | flex-start | flex-end | center | space-between | space-around;
-设置侧轴上的元素对齐方式(多行)，若为单行则该属性不起作用。
+设置侧轴上的元素对齐方式(多行)，若为单行则该属性不起作用
 
 ----
 
 >>- 4、align-items: flex-start | flex-end | center | baseline | stretch;
-设置侧轴上的元素对齐方式(单行)，若为单行则该属性不起作用。
+设置侧轴上的元素对齐方式(单行)，若为多行则元素间的纵向距离不变
 
 ----
 
@@ -604,3 +604,15 @@ CSS中的高(height)=内容(content)的高+(border+padding)*2
 当浏览器解析到src ，会暂停其他资源的下载和处理，直到将该资源加载和执行完毕。
 </dd>
 </dl>
+
+## <a href="https://cloud.tencent.com/developer/article/1538441">margin击穿与解决方法</a>
+
+## hash路由与history路由的原理
+
+<dl>
+  <dt>hash模式：</dt>
+  <dd>方法location.hash修改hash值</dd>
+  <dd>onhashchange()函数：hash值变化浏览器不会重新发起请求，但是会触发window.hashchange事件，假如我们在onhashchange事件中获取当前的hash值，并根据hash值来修改页面内容，则达到了前端路由的目的（可以不用onhashchange吗？）</dd>
+  <dt>history模式: </dt>
+  <dd>方法history.pushState()、replaceState()、popstate()：</dd><dd>history.pushState会追加历史记录，并更换地址栏地址信息，但是页面不会刷新，需要手动调用地址变化之后的处理函数，并在处理函数内部决定跳转逻辑；监听popstate事件是为了响应浏览器的前进后退功能(不能监听地址栏改变事件)</dd>
+<dl>
