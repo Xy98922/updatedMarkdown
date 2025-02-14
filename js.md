@@ -286,13 +286,11 @@ for (let i of iter) {
 - .valueOf()，**返回指定对象的原始值**
 - .toString()，**返回一个表示该对象的字符串**
 
-  ***
+---
 
-  ***
+---
 
-  ***
-
-  ***
+---
 
 ## Object 内置方法 Object.xxx
 
@@ -834,7 +832,7 @@ new React().arrow();
 
   3、_Promise.reject(value)_
 
-  > > 返回*Promise {\<rejected>: value}*
+  > > 返回`Promise {\<rejected>: value}`
 
   4、Promise.resolve(value)
 
@@ -871,7 +869,7 @@ new React().arrow();
 
 ## 作用域概述
 
-在 JavaScript 中，**作用域**决定了变量、函数或对象在代码中的可访问范围(可以这样理解：有且仅在作用域内，无论在何处声明了变量，在该作用域所有地方都能知道这个变量存在，"存在"表明 js 能够知道该变量并非为` * is not defined`)。
+在 JavaScript 中，**作用域**决定了变量、函数或对象在代码中的可访问范围(可以这样理解：有且仅在作用域内，无论在何处声明了变量，在该作用域所有地方都能知道这个变量存在，"存在"表明 js 能够知道该变量并非为`* is not defined`)。
 
 ==**全局作用域中的 var 变量**==
 
