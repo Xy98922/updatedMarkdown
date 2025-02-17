@@ -148,19 +148,21 @@ Function.prototype.my_call = function (context) {
 ## 深克隆
 
 ```js
-function deepCopy(obj) {
-  if (!obj || typeof obj !== "object") {
-    // typedof==='object'可能的情况 Array Null Object 所以要用!obj来排除Null
-    throw new TypeError("the parameter are not object");
+function deepClone(obj: any, cache = new WeakMap()) {
+  if (obj === null || typeof obj !== "object") {
+    return obj;
   }
-  const newObj = Array.isArray(obj) ? [] : {};
-  for (let key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      newObj[key] =
-        typeof obj[key] === "object" ? deepCopy(obj[key]) : obj[key];
+  if (cache.has(obj)) {
+    return cache.get(obj);
+  }
+  const clone: Record<string, any> = Array.isArray(obj) ? [] : {};
+  cache.set(obj, clone);
+  for (const k in obj) {
+    if (obj.hasOwnProperty(k)) {
+      clone[k] = deepClone(obj[k], cache);
     }
   }
-  return newObj;
+  return clone;
 }
 ```
 

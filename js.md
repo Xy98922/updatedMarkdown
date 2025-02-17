@@ -1151,3 +1151,53 @@ console.log(str.match(reg)); //=>["2","o","1","9","2","0","2","0"]
 
 **1.先父类,后子类**
 **2.先静态，后非静态**
+
+## 原型及原型链
+
+### 原型
+
+1. 每一个函数数据类型的值，都有一个天生自带的属性:`prototype`(原
+   型)，这个属性的属性值是一个对象(“用来存储实例公用属性和方法”)
+
+   **函数类型的值包括**
+
+   - 普通的函数
+   - 类(自定义类和内置类 )
+
+2. 在 `prototype` 这个对象中，有一个天生自带的属性:constructor，这个属性存储的是当前函数本身
+   `Fn.prototype.constructor === Fn`
+
+3. 每一个对象数据类型的值，也有一个天生自带的属性:`__proto__`，这个
+   属性指向"所属类的==原型== `prototype`"
+
+   **对象类型的值包括**
+
+   - 普通对象、数组、正则、Math、日期、类数组等等
+   - 实例也是对象数据类型的值
+   - 函数的原型 `prototype` 属性的值也是对象类型的
+   - 函数也是对象数据类型的值
+
+### 原型链查找机制
+
+1. 先找自己私有的属性，有则调取使用，没有继续找
+2. 基于`__proto__`找所属类原型上的方法(`Fn.prototype`)，如果还没有则继续基于`__proto__`往上找.….一直找到 `Obiect.prototype` 为止,
+   ![alt text](./images/yuque_diagram.jpg)
+
+## 可枚举属性与不可枚举属性
+
+> 在 JavaScript 对象中，每个属性都有一个 enumerable（可枚举）特性，它决定了该属性是否会在 for...in 或 Object.keys() 遍历中被枚举（即是否会被列出）。
+
+### 可枚举属性
+
+可枚举`enumerable: true`的属性 会在 对象的遍历（如 for...in 和 Object.keys()） 时被枚举出来。默认情况下，手动添加的对象属性 以及 通过 `Object.defineProperty()` 定义但未设置 enumerable: false 的属性 都是可枚举的。
+
+### 不可枚举属性
+
+不可枚举（enumerable: false）的属性 不会在 for...in、Object.keys() 遍历中出现。但它们仍然可以通过 Object.getOwnPropertyNames() 或 Reflect.ownKeys() 访问。
+
+### 在`class A`中定义的方法与`A.prototype`中定义的方法
+
+- 在 class A 中定义的属性方法为不可枚举属性
+- 在`A.prototype`定义的属性方法为可枚举属性
+- 不同方式定义的方法共享同一个堆内存
+- 遍历方法：`for( ... in)`会访问对象的原型链
