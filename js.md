@@ -887,7 +887,6 @@ new React().arrow();
 ```JS
 function add() {
   console.log(a); // undefined (JS知道有这个变量，但是该变量为赋于初始值)
-  a = 22;
   if( true ){
     var a = 12; // 声明在一个块中
   }

