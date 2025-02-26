@@ -292,31 +292,36 @@ const api = (method, url, params) => {
 
 ## 防抖函数
 
+> 1. 高频
+> 2. 耗时
+> 3. 以最后一次调用为准
+
+- 类比电梯关门时有人进来，每次有人进来我要再按下关门键
+
 ```js
-function debounce(f, time, ...arg) {
-  let d = new Date();
-  return function () {
-    if (new Date() - d > time) {
-      f.call(this, ...arg);
-    }
-    d = new Date();
+function debounce(func, delay) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => func.apply(this, args), delay);
   };
 }
 ```
 
 ## 节流函数
 
+- 类比技能 CD，在狂点技能时，在技能 CD 期间无法再次使用技能，
+- 当前时间 - 上次技能触发时间 >= 技能 CD 时间 ：方可再次使用技能
+- 使用技能后，刷新上次技能触发时间
+
 ```js
-function throttle(fn, timedelay) {
-  let done = 1; // 记录是否可执行
-  return function () {
-    if (done) {
-      fn.call(this, ...arguments);
-      done = 0; // 执行后置为不可执行
-      setTimeout(() => {
-        // 计时结束后再置为可执行
-        done = 1;
-      }, timedelay);
+function throttle(fn, delay) {
+  let lastTime = null;
+  return function (...args) {
+    const now = Date.now();
+    if (lastTime === null || now - lastTime >= delay) {
+      lastTime = now;
+      fn.apply(this, args);
     }
   };
 }
