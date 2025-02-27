@@ -22,11 +22,10 @@ bar2.name = "foo2";
 console.log(bar3.name);
 ```
 
-> > 解析：
-
-    1、输出顺序主要考察：Event Loop；
-    2、第一个和第三个输出考察：this指针；
-    3、第二个输出考察：引用类型赋值
+> 解析：
+> 1、输出顺序主要考察：Event Loop；
+> 2、第一个和第三个输出考察：this 指针；
+> 3、第二个输出考察：引用类型赋值
 
 ```js {.font}
 var name = "global";
@@ -180,7 +179,7 @@ D &nbsp;&nbsp;![] == ''
 
 js 在**转换布尔值**时候将：0、null、false、NaN、undefined、'' 转为 false，其他所有数据都转换为 true
 
-注意：会将参数*转换为布尔值的情况有：！、if()、A?B:C*；**_在==类型转换时，并不会将数据转为布尔值_**
+注意：会将参数转换为布尔值的情况有：！、if()、A?B:C\*；**_在==类型转换时，并不会将数据转为布尔值_**
 
 思考：
 
@@ -355,7 +354,7 @@ console.log("end");
 
 ## 实现边长自适应的正方形
 
-- 方法一,灵活运用视窗单位*vw*。当**没给 body 设置 css**时，**body 的 width 为 100vw，height 为 0**，即说明当一个元素以 body 为父元素时，**width：n%与 width：nvw 等价**，**height：n%与 height: nvh 等价且都等于 0**
+- 方法一,灵活运用视窗单位`vw`。当**没给 body 设置 css**时，**body 的 width 为 100vw，height 为 0**，即说明当一个元素以 body 为父元素时，**width：n%与 width：nvw 等价**，**height：n%与 height: nvh 等价且都等于 0**
 
 ```css
 #square {
@@ -382,7 +381,7 @@ console.log("end");
 
 - 方法三，利用伪元素的 margin(padding)-top 撑开容器（::after 用来创建一个伪元素，作为已选中元素的最后一个**子元素**）
 
-> > 为什么加*overflow：hidden*：在**垂直方向**上，当**子元素的 margin 与父元素的 border 相邻时**，**子元素的 margin 会贯穿父元素，变成父元素的 margin**==>margin 贯穿，是父元素形成一个 BFC 可避免这一现象，或者使用 padding 代替 margin
+> > 为什么加`overflow：hidden`：在**垂直方向**上，当**子元素的 margin 与父元素的 border 相邻时**，**子元素的 margin 会贯穿父元素，变成父元素的 margin**==>margin 贯穿，是父元素形成一个 BFC 可避免这一现象，或者使用 padding 代替 margin
 
 ```css
 #square{
@@ -608,7 +607,7 @@ function f(n) {
 
 ## promise 实现，红色三秒打印一次、绿色两秒打印一次、黄色一秒打印一次
 
-```js {.font}
+```js
 function red() {
   console.log("red");
 }
@@ -645,4 +644,83 @@ function step() {
     });
 }
 step();
+```
+
+## 大文件上传
+
+```TypeScript
+// cutFile.ts
+const CHUNK_SIZE = 1024 * 1024 * 10;
+const THREAD_COUNT = navigator.hardwareConcurrency || 4;
+export async function cutFile(file: File) {
+  return new Promise((resolve) => {
+    // 总共的分片数量
+    const chunkCount = Math.ceil(file.size / CHUNK_SIZE);
+    // 每个线程能分配到的分片数量
+    const threadChunkCount = Math.ceil(chunkCount / THREAD_COUNT);
+    const result: any[] = [];
+    let finishCount = 0;
+    for (let i = 0; i < THREAD_COUNT; i++) {
+      // 开启一个线程任务
+      const worker = new Worker(new URL("@/utils/worker.ts", import.meta.url), {
+        type: "module",
+      });
+      let start = i * threadChunkCount;
+      let end = Math.min(start + threadChunkCount, chunkCount);
+      worker.postMessage({
+        file,
+        start,
+        end,
+        CHUNK_SIZE,
+      });
+      worker.onmessage = (e) => {
+        worker.terminate();
+        result[i] = e.data;
+        finishCount++;
+        console.log("finishCount:", finishCount);
+        if (finishCount === THREAD_COUNT) {
+          resolve(result.flat());
+        }
+      };
+    }
+  });
+}
+```
+
+```TypeScript
+//worker.ts
+import SparkMD5 from "spark-md5";
+function createChunk(file: File, index: number, chunkSize: number) {
+  return new Promise((resolve) => {
+    const start = index * chunkSize;
+    const end = start + chunkSize;
+    const spark = new SparkMD5.ArrayBuffer();
+    const fileReader = new FileReader();
+    const blob = file.slice(start, end);
+    fileReader.onload = (e: any) => {
+      spark.append(e.target.result);
+      resolve({
+        start,
+        end,
+        index,
+        hash: spark.end(),
+        blob,
+      });
+    };
+    fileReader.readAsArrayBuffer(blob);
+  });
+}
+
+self.onmessage = async (event) => {
+  const { file, start, end, CHUNK_SIZE } = event.data;
+  const result = [];
+  for (let i = start; i < end; i++) {
+    const promise = createChunk(file, i, CHUNK_SIZE);
+    result.push(promise);
+  }
+  const chunks = await Promise.all(result);
+  postMessage(chunks);
+  console.log("worker finish");
+};
+
 ```
