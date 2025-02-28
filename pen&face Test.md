@@ -677,7 +677,6 @@ export async function cutFile(file: File) {
         worker.terminate();
         result[i] = e.data;
         finishCount++;
-        console.log("finishCount:", finishCount);
         if (finishCount === THREAD_COUNT) {
           resolve(result.flat());
         }
@@ -711,7 +710,7 @@ function createChunk(file: File, index: number, chunkSize: number) {
   });
 }
 
-self.onmessage = async (event) => {
+onmessage = async (event) => {
   const { file, start, end, CHUNK_SIZE } = event.data;
   const result = [];
   for (let i = start; i < end; i++) {
@@ -720,7 +719,21 @@ self.onmessage = async (event) => {
   }
   const chunks = await Promise.all(result);
   postMessage(chunks);
-  console.log("worker finish");
 };
 
 ```
+
+## 断点续传
+
+- `localStorage`保存
+
+```javascript
+{
+  key:`${file.name}-${file.size}-${file.lastModified}`,
+  value:[1,2,3,...]; //已上传的块index
+}
+```
+
+## 秒传
+
+用户上传的文件在服务端已经存在时，直接返回成功。通常通过文件哈希来判断文件是否已经上传。
