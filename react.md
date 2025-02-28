@@ -349,3 +349,11 @@ startTransition(() => {
 `
 
 - `React.memo(fn)` :父组件更新了，但是`React.memo`包装子组件的 props 没变，那么该子组件就跳过重新渲染
+
+## Suspense 允许在子组件完成加载前展示后备方案
+
+只有启用了 Suspense 的数据源才会激活 Suspense 组件，它们包括：
+
+- 支持 Suspense 的框架如 Relay 和 Next.js。
+- 使用 lazy 懒加载组件代码。
+- 使用 use 读取 Promise 的值。

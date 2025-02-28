@@ -737,3 +737,52 @@ onmessage = async (event) => {
 ## 秒传
 
 用户上传的文件在服务端已经存在时，直接返回成功。通常通过文件哈希来判断文件是否已经上传。
+
+## ES 模块是如何工作的
+
+1. 构建过程（Construction） -- 查找并解析所有的模块文件，生成模块记录。
+   模块记录包括以下信息：
+
+   - 导入的模块（imports）
+   - 导出的内容（exports）：
+   - 求值状态（evaluationStatus）：模块是否已被过。
+     ![模块记录](./images/moduleRecord.png)
+
+2. 初始化（Instantiation） -- 为模块导出的变量分配内存（但不求值）。然后将导入和导出都指向这些内存地址，这称为链接。
+
+3. 求值（Evaluation） -- 运行代码，将变量值填充到内存中去。
+
+## Vite (bundleless)
+
+### 原理
+
+在`<script type="module">`中，浏览器遇到内部的 import 引用时，会自动发起 http 请求，去加载对应的模块。
+vite 也正是利用了 ES module 这个特性，使用 vite 运行项目时，首先会用 esbuild 进行预构建，将所有模块转换为 es module，不需要对我们整个项目进行编译打包，而是在浏览器需要加载某个模块时，拦截浏览器发出的请求，根据请求进行按需编译，然后返回给浏览器。
+这样一来，首次启动项目（冷启动）时，自然也就比 webpack 快很多了，并且项目大小对 vite 启动速度的影响也很小。
+
+1. 解决了服务器启动缓慢的问题
+
+   - 使用 esbuild 预构建依赖
+
+     > 当你首次启动 vite 时，Vite 在本地加载你的站点之前预构建了项目依赖。默认情况下，它是自动且透明地完成的，目的是：
+     >
+     > - 性能： 为了提高后续页面的加载性能，Vite 将那些具有许多内部模块的 ESM 依赖项转换为单个模块。
+     > - CommonJS 和 UMD 兼容性
+
+   - 以原生 ESM 方式提供源码，让浏览器接管打包程序的部分工作
+     ![alt text](./images/vite.svg)
+
+2. 解决了更新缓慢的问题
+   在 Vite 中，HMR 是在原生 ESM 上执行的。当编辑一个文件时，Vite 只需要精确地使已编辑的模块与其最近的 HMR 边界之间的链失活（大多数时候只是模块本身），使得无论应用大小如何，HMR 始终能保持快速更新。
+   > - Vite 的 HMR 以 模块为单位 进行更新
+   > - Vite 通过显式 HMR 边界限制更新范围
+   >   示例：
+   >   假设依赖链为 App → Router → Page → Component，若修改 Component，Vite 仅使 Component → Page 的链路失效（若 Page 是 HMR 边界），而 App 和 Router 不受影响。
+
+## Webpack
+
+1. 工作原理
+   当我们使用 webpack 启动项目时，webpack 会根据我们配置文件（webpack.config.js） 中的入口文件（entry），分析出项目项目所有依赖关系，然后打包成一个文件（bundle.js），交给浏览器去加载渲染。
+   ![alt text](./images/webpack.svg)
+
+## <a href="https://juejin.cn/post/7283682738497765413?searchId=20250228175028AB78D75C81CADE4E2D7C">Webpack VS Vite</a>
