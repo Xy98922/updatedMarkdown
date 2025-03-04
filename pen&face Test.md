@@ -769,7 +769,7 @@ vite 也正是利用了 ES module 这个特性，使用 vite 运行项目时，�
      > - 性能： 为了提高后续页面的加载性能，Vite 将那些具有许多内部模块的 ESM 依赖项转换为单个模块。
      > - CommonJS 和 UMD 兼容性
 
-   - 以原生 ESM 方式提供源码，让浏览器接管打包程序的部分工作
+   - 以原生 ESM 方式提供源码，在浏览器请求源码时进行转换并按需提供源码(通过 esbuild)
      ![alt text](./images/vite.svg)
 
 2. 解决了更新缓慢的问题
@@ -781,8 +781,110 @@ vite 也正是利用了 ES module 这个特性，使用 vite 运行项目时，�
 
 ## Webpack
 
-1. 工作原理
-   当我们使用 webpack 启动项目时，webpack 会根据我们配置文件（webpack.config.js） 中的入口文件（entry），分析出项目项目所有依赖关系，然后打包成一个文件（bundle.js），交给浏览器去加载渲染。
-   ![alt text](./images/webpack.svg)
+Webpack 是一个模块打包工具，主要用于将项目中的各种资源（JavaScript、CSS、图片、字体等）作为模块进行组织、编译、转换和打包，从而生成浏览器可以高效加载的静态资源文件。它的核心目标是把应用程序的所有依赖（包括代码和静态资源）打包成一个或多个 bundle，从而提高加载效率、减少请求数并支持代码拆分、懒加载等高级特性。
+
+---
+
+### Webpack 的底层运作流程
+
+Webpack 的运作可以大致分为以下几个阶段：
+
+1. **初始化与配置加载**
+
+   - **读取配置**：Webpack 首先读取配置文件（如 webpack.config.js），获取入口文件（entry）、输出配置（output）、加载器（loaders）、插件（plugins）等信息。
+   - **设置环境**：根据配置初始化内部状态，决定构建环境（开发环境、生产环境）和优化策略。
+
+2. **构建依赖图（Module Graph）**
+
+   - **入口解析**：从入口文件开始，Webpack 分析文件中的依赖关系。它会扫描代码中通过 import/require 引入的模块。
+   - **模块解析**：每个被引用的模块都会被解析。Webpack 根据配置调用相应的 Loader（例如 Babel Loader、CSS Loader）来转换代码或资源。
+   - **递归查找依赖**：对每个模块继续扫描，构建出一个完整的依赖图，涵盖所有直接或间接依赖的模块。
+
+3. **转换与编译模块**
+
+   - **Loader 执行**：每个模块在打包前会经过配置的 Loader 处理，这个过程包括转译（例如 ES6 转换为 ES5）、预处理（如 Sass 编译）、资源处理（如图片转换为 Base64）等。
+   - **模块转换**：转换后的模块以统一格式表示（通常是 JavaScript 模块），并被标记为可供打包。
+
+4. **生成 Chunk 与 Bundle**
+
+   - **代码拆分**：Webpack 根据配置（如动态导入、SplitChunksPlugin）将依赖图拆分成多个 chunk，这有助于实现按需加载和优化缓存。
+   - **打包输出**：Webpack 将各个 chunk 合并成一个或多个 bundle，生成最终的静态文件（通常是 JavaScript 文件），同时也生成 source map、CSS 文件和其他资源文件。
+
+5. **插件机制**
+
+   - **插件执行**：在整个构建过程中，Webpack 的插件系统会拦截和处理各种钩子（hook），实现诸如优化、压缩、热更新、环境变量注入等功能。插件能够深度参与构建流程，改变或扩展 Webpack 的行为。
+
+6. **输出与部署**
+   - **文件输出**：Webpack 根据 output 配置，将所有 bundle 写入指定的输出目录。
+   - **部署准备**：生成的文件可以直接部署到服务器，或者进一步经过 CDN 分发、缓存优化等步骤。
+
+---
+
+### 简单示例
+
+假设有如下简单配置：
+
+```js
+// webpack.config.js
+const path = require("path");
+
+module.exports = {
+  entry: "./src/index.js", // 入口文件
+  output: {
+    filename: "bundle.js", // 打包后的文件名
+    path: path.resolve(__dirname, "dist"), // 输出目录
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/, // 针对 .js 文件使用 Babel 转换
+        exclude: /node_modules/,
+        use: "babel-loader",
+      },
+      {
+        test: /\.css$/, // 针对 .css 文件使用 CSS Loader 和 style-loader
+        use: ["style-loader", "css-loader"],
+      },
+    ],
+  },
+  plugins: [
+    // 可以配置各种插件，如 HtmlWebpackPlugin 等
+  ],
+};
+```
+
+在这种配置下，Webpack 会：
+
+- 从 `./src/index.js` 开始扫描依赖，
+- 对所有 .js 文件使用 Babel Loader 进行转换，
+- 对 .css 文件使用 CSS Loader 转换后，通过 style-loader 注入到页面中，
+- 将所有处理后的模块打包成 `dist/bundle.js` 文件。
+
+---
+
+### 总结
+
+- **Webpack 是一个强大的模块打包器**，它将所有资源视为模块，通过 Loader 和插件系统处理和转换，然后将它们合并成最终的静态文件。
+- **其底层流程** 包括配置读取、依赖图构建、模块转换、chunk 和 bundle 生成以及插件介入各个构建环节。
+- 这种模块化的打包方式使得前端开发能够更高效地管理依赖、优化性能并实现代码拆分和懒加载等高级特性。
+  ![alt text](./images/webpack.svg)
 
 ## <a href="https://juejin.cn/post/7283682738497765413?searchId=20250228175028AB78D75C81CADE4E2D7C">Webpack VS Vite</a>
+
+## MFSU
+
+MFSU 是一种基于 webpack5 新特性 Module Federation 的打包提速方案。其核心的思路是通过分而治之，将应用源代码的编译和应用依赖的编译分离，将变动较小的应用依赖构建为一个 Module Federation 的 remote 应用，以免去应用热更新时对依赖的编译。
+
+开启 MFSU 可以大幅减少热更新所需的时间了
+
+MFSU 做的事情其实就是扫描依赖，**对依赖预打包**，然后通过 Module Federation 共享给业务工程消费。业务工程无需对依赖进行构建、打包，进而提升了构建效率。有没有觉得这种设计思路很熟悉了，没错，Vite 也用到了依赖预构建。
+
+## 微前端
+
+将单体前端应用拆分为多个独立的前端模块，这些模块可以由不同的团队使用不同的**技术栈独立**开发、测试和部署，最终集成在一起，形成一个完整的前端应用。
+![alt text](./images/microFe.png)
+
+## 低代码平台
+
+前端低代码是一种利用可视化工具和预构建组件来开发前端应用的方式，旨在减少手写代码量，让开发人员或业务人员可以更快速地构建和部署用户界面。
+（百度的低代码平台直接用 JSON 来配置）
