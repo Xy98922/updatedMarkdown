@@ -1,4 +1,4 @@
-# 前端笔试题
+# 前端笔试面试题
 
 [TOC]
 
@@ -770,7 +770,6 @@ vite 也正是利用了 ES module 这个特性，使用 vite 运行项目时，�
      > - CommonJS 和 UMD 兼容性
 
    - 以原生 ESM 方式提供源码，在浏览器请求源码时进行转换并按需提供源码(通过 esbuild)
-     ![alt text](./images/vite.svg)
 
 2. 解决了更新缓慢的问题
    在 Vite 中，HMR 是在原生 ESM 上执行的。当编辑一个文件时，Vite 只需要精确地使已编辑的模块与其最近的 HMR 边界之间的链失活（大多数时候只是模块本身），使得无论应用大小如何，HMR 始终能保持快速更新。
@@ -778,6 +777,12 @@ vite 也正是利用了 ES module 这个特性，使用 vite 运行项目时，�
    > - Vite 通过显式 HMR 边界限制更新范围
    >   示例：
    >   假设依赖链为 App → Router → Page → Component，若修改 Component，Vite 仅使 Component → Page 的链路失效（若 Page 是 HMR 边界），而 App 和 Router 不受影响。
+
+### 架构
+
+入口 entry：`/src/main.ts`
+
+![alt text](./images/vite.svg)
 
 ## Webpack
 
@@ -888,3 +893,161 @@ MFSU 做的事情其实就是扫描依赖，**对依赖预打包**，然后通�
 
 前端低代码是一种利用可视化工具和预构建组件来开发前端应用的方式，旨在减少手写代码量，让开发人员或业务人员可以更快速地构建和部署用户界面。
 （百度的低代码平台直接用 JSON 来配置）
+
+## NextJS 与 SSR
+
+Next.js 的渲染原理是其核心优势之一，它结合了多种渲染策略（如 **SSG、SSR、CSR、ISR**）和现代前端架构，提供灵活且高性能的渲染方案。以下是 Next.js 渲染原理的全面解析：
+
+---
+
+### 一、Next.js 的渲染模式
+
+Next.js 支持多种渲染模式，开发者可以根据页面需求灵活选择：
+
+| 模式                                       | 特点                                        | 适用场景                                 |
+| ------------------------------------------ | ------------------------------------------- | ---------------------------------------- |
+| **SSG（Static Site Generation）**          | 构建时生成静态 HTML，**无需服务端实时计算** | 博客、文档站、营销页等完全静态内容       |
+| **SSR（Server-Side Rendering）**           | 每次请求时生成 HTML，**实时动态内容**       | 用户仪表盘、个性化页面、SEO 敏感的动态页 |
+| **CSR（Client-Side Rendering）**           | 浏览器中通过 JavaScript 渲染内容            | 交互复杂的 SPA（如管理后台）             |
+| **ISR（Incremental Static Regeneration）** | SSG + 按需更新，**增量再生静态页面**        | 大规模动态内容（如电商商品页）           |
+| **混合渲染（Hybrid Rendering）**           | 同一应用内混合使用多种模式                  | 大多数现代 Web 应用                      |
+
+---
+
+### 二、核心渲染流程
+
+#### 1. **构建阶段（Build Time）**
+
+- **SSG 页面生成**：通过 `getStaticProps` 或 App Router 的 `generateStaticParams` 生成静态 HTML。
+- **代码优化**：自动代码分割（Code Splitting）、预取（Prefetching）、优化 Bundle。
+
+#### 2. **请求处理阶段（Runtime）**
+
+- **路由匹配**：根据请求路径匹配页面组件。
+- **渲染策略决策**：
+  - **静态页面**（SSG/ISR）：直接返回预生成的 HTML。
+  - **动态页面**（SSR）：调用 `getServerSideProps` 或 App Router 的 Server Component 获取数据并生成 HTML。
+- **流式传输（Streaming）**：通过 Suspense 分块传输 HTML，提升首屏速度（App Router 特性）。
+
+#### 3. **客户端 Hydration**
+
+- **交互增强**：静态或服务端渲染的 HTML 在浏览器中通过 React Hydration 变为可交互的 SPA。
+- **客户端导航**：通过 `next/link` 或 `next/router` 实现无刷新页面切换（类似 SPA）。
+
+---
+
+### 三、关键机制详解
+
+#### 1. **数据获取与渲染策略**
+
+| 方法                                | 执行时机            | 用途                       |
+| ----------------------------------- | ------------------- | -------------------------- |
+| `getStaticProps` (Pages Router)     | 构建时或 ISR 再生时 | 为 SSG/ISR 页面提供数据    |
+| `getServerSideProps` (Pages Router) | 每次请求时          | 为 SSR 页面提供实时数据    |
+| **Server Components** (App Router)  | 每次请求时（默认）  | 直接在服务端获取数据并渲染 |
+| `use client` + `useEffect`          | 客户端运行时        | 处理客户端交互或动态数据   |
+
+```jsx
+// App Router 示例：混合服务端与客户端组件
+// app/page.js (Server Component)
+async function Page() {
+  const data = await fetchData(); // 服务端直接获取数据
+  return (
+    <div>
+      <StaticContent data={data} />
+      <ClientComponent /> {/* 客户端交互 */}
+    </div>
+  );
+}
+
+// app/ClientComponent.js
+'use client';
+function ClientComponent() {
+  const [state, setState] = useState();
+  return <button onClick={() => setState(...)}>Click</button>;
+}
+```
+
+#### 2. **缓存与增量更新（ISR）**
+
+- **`revalidate` 参数**：控制页面再生间隔（如 `revalidate: 60` 表示 60 秒后过期）。
+- **按需再生**：通过 `res.revalidate()` 或 Webhook 手动触发更新。
+- **CDN 集成**：结合 CDN 边缘缓存实现全局快速更新。
+
+#### 3. **流式渲染（Streaming）**
+
+- **分块传输**：将页面拆分为多个模块，优先传输关键内容。
+- **Suspense 支持**：延迟加载非关键部分，提升首屏速度。
+
+```jsx
+// App Router 流式渲染示例
+async function Page() {
+  return (
+    <div>
+      <Header />
+      <Suspense fallback={<Loading />}>
+        <SlowComponent /> {/* 异步加载 */}
+      </Suspense>
+    </div>
+  );
+}
+```
+
+---
+
+### 四、不同路由模式的差异
+
+#### 1. **Pages Router（传统模式）**
+
+- 基于文件系统的路由（`pages/` 目录）。
+- 通过 `getStaticProps`/`getServerSideProps` 明确区分渲染策略。
+- 客户端导航依赖 `next/router`。
+
+#### 2. **App Router（新架构，推荐）**
+
+- 基于 `app/` 目录的路由系统。
+- **服务端组件默认启用**，通过 `'use client'` 标记客户端组件。
+- **嵌套布局（Layouts）**：共享 UI 且保留状态。
+- **React Server Components (RSC)**：直接在服务端渲染组件树。
+
+---
+
+### 五、性能优化机制
+
+1. **自动静态优化**
+   - 未使用 `getServerSideProps` 的页面自动转为 SSG。
+2. **增量静态再生（ISR）**
+   - 仅更新过期页面，无需全量构建。
+3. **客户端代码按需加载**
+   - 通过动态导入（`dynamic import`）延迟加载非关键组件。
+   ```jsx
+   const HeavyComponent = dynamic(() => import("./HeavyComponent"), {
+     loading: () => <Skeleton />,
+   });
+   ```
+4. **图片优化**
+   - 自动转换 WebP 格式、Lazy Loading、尺寸优化（通过 `next/image`）。
+
+---
+
+### 六、不同场景的渲染策略选择
+
+| 场景               | 推荐策略                     | 原因                  |
+| ------------------ | ---------------------------- | --------------------- |
+| **内容为主的网站** | SSG + ISR                    | 高性能且支持内容更新  |
+| **用户个性化页面** | SSR + CSR                    | 实时数据 + 客户端交互 |
+| **大型电商网站**   | ISR + On-Demand Revalidation | 平衡性能与动态性      |
+| **管理后台**       | CSR                          | 交互复杂，SEO 无关    |
+
+---
+
+### 七、总结
+
+Next.js 的渲染原理通过以下核心设计实现高性能与灵活性：
+
+1. **混合渲染架构**：自由组合 SSG、SSR、CSR、ISR。
+2. **服务端与客户端组件的协作**：App Router 实现更细粒度的控制。
+3. **智能缓存与再生**：ISR 解决传统 SSG 的更新痛点。
+4. **流式传输与代码分割**：优化加载性能。
+
+开发者应根据具体需求（如 SEO、实时性、交互复杂度）选择合适的渲染策略，充分发挥 Next.js 的渲染能力。
