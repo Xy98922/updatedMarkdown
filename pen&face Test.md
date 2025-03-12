@@ -648,7 +648,7 @@ step();
 
 ## 大文件上传
 
-```TypeScript
+```js
 // cutFile.ts
 const CHUNK_SIZE = 1024 * 1024 * 10;
 const THREAD_COUNT = navigator.hardwareConcurrency || 4;
@@ -686,7 +686,7 @@ export async function cutFile(file: File) {
 }
 ```
 
-```TypeScript
+```js
 //worker.ts
 import SparkMD5 from "spark-md5";
 function createChunk(file: File, index: number, chunkSize: number) {
@@ -720,19 +720,21 @@ onmessage = async (event) => {
   const chunks = await Promise.all(result);
   postMessage(chunks);
 };
-
 ```
 
 ## 断点续传
 
 - `localStorage`保存
 
-```javascript
+```js
 {
   key:`${file.name}-${file.size}-${file.lastModified}`,
   value:[1,2,3,...]; //已上传的块index
 }
 ```
+
+- `indexedDB`保存
+  切完后，将 blob,存储到 IndexedDB,下次用户进来之后，嗅探一下是否存在未完成上传的切片，有就尝试继续上传
 
 ## 秒传
 
@@ -875,6 +877,114 @@ module.exports = {
   ![alt text](./images/webpack.svg)
 
 ## <a href="https://juejin.cn/post/7283682738497765413?searchId=20250228175028AB78D75C81CADE4E2D7C">Webpack VS Vite</a>
+
+## 模块联邦 ​
+
+模块联邦（Module Federation）是 Webpack 5 引入的一项重要特性，旨在解决微前端架构下的代码共享和依赖管理问题。它允许多个独立的前端应用在运行时动态加载和共享模块。​
+​
+
+### 特征：​
+
+1. 动态加载：模块联邦支持在运行时动态加载远程模块，而不是在编译时将所有代码打包在一起。​
+2. 代码共享：不同应用之间可以共享模块，无需重复打包，提高了代码复用性和加载速度。​
+3. 独立部署：各个应用可以独立开发、测试和部署，互不影响。​
+4. 自动依赖处理：模块联邦自动处理依赖关系，确保加载的模块能够正常运行。​
+   ​
+
+### 优点：​
+
+1. 提高开发效率：不同团队可以独立开发和部署各自的模块或应用，减少了开发依赖，提高了开发效率。​
+2. 代码复用：通过模块联邦，多个应用可以共享相同的代码或组件，减少了重复代码，降低了维护成本。​
+3. 性能优化：动态加载减少了初始加载时间，只在需要时加载特定模块，提高了应用的性能。​
+4. 独立部署：各个应用或模块可以独立部署和更新，降低了集成和发布的复杂性。​
+5. 技术栈独立：不同的子应用可以使用不同的技术栈，满足各团队的技术需求。​
+   ​
+
+### 缺点：​
+
+1. 复杂性增加：模块联邦引入了更多的配置和管理复杂性，需要开发者具备一定的知识和经验。​
+2. 版本管理：在共享模块时，必须小心处理版本兼容性问题，确保不同版本的模块能够正常工作。​
+3. 性能开销：动态加载远程模块可能引入一定的网络延迟和性能开销，特别是在低带宽或高延迟环境下。​
+4. 构建和部署协调：需要良好的构建和部署策略，确保各个模块或应用在发布时能够正确加载和运行。​
+
+### 示例 ​
+
+应用 A (Host) 配置 ​
+
+```js
+// webpack.config.js (App A)​
+const path = require('path');​
+const { ModuleFederationPlugin } = require('webpack').container;​
+​
+module.exports = {​
+  entry: './src/index.js',​
+  mode: 'development',​
+  devServer: {​
+    contentBase: path.join(__dirname, 'dist'),​
+    port: 3001,​
+  },​
+  output: {​
+    publicPath: 'http://localhost:3001/',​
+  },​
+  plugins: [​
+    new ModuleFederationPlugin({​
+      name: 'appA',​
+      remotes: {​
+        appB: 'appB@http://localhost:3002/remoteEntry.js',​
+      },​
+    }),​
+  ],​
+};
+```
+
+应用 B (Remote) 配置 ​
+
+```JS
+// webpack.config.js (App B)​
+const path = require('path');​
+const { ModuleFederationPlugin } = require('webpack').container;​
+​
+module.exports = {​
+  entry: './src/index.js',​
+  mode: 'development',​
+  devServer: {​
+    contentBase: path.join(__dirname, 'dist'),​
+    port: 3002,​
+  },​
+  output: {​
+    publicPath: 'http://localhost:3002/',​
+  },​
+  plugins: [​
+    new ModuleFederationPlugin({​
+      name: 'appB',​
+      filename: 'remoteEntry.js',​
+      exposes: {​
+        './Module': './src/Module',​
+      },​
+    }),​
+  ],​
+};
+```
+
+​
+​
+应用 B 中的模块 ​
+
+```JS
+// src/Module.js (App B)​
+export const greet = () => 'Hello from App B';​
+```
+
+​
+
+应用 A 中使用远程模块 ​
+
+```JS
+// src/index.js (App A)​
+import('appB/Module').then(module => {​
+console.log(module.greet());​
+});​​
+```
 
 ## MFSU
 
@@ -1019,12 +1129,15 @@ async function Page() {
 2. **增量静态再生（ISR）**
    - 仅更新过期页面，无需全量构建。
 3. **客户端代码按需加载**
+
    - 通过动态导入（`dynamic import`）延迟加载非关键组件。
+
    ```jsx
    const HeavyComponent = dynamic(() => import("./HeavyComponent"), {
      loading: () => <Skeleton />,
    });
    ```
+
 4. **图片优化**
    - 自动转换 WebP 格式、Lazy Loading、尺寸优化（通过 `next/image`）。
 
