@@ -357,3 +357,20 @@ startTransition(() => {
 - 支持 Suspense 的框架如 Relay 和 Next.js。
 - 使用 lazy 懒加载组件代码。
 - 使用 use 读取 Promise 的值。
+
+## react 中的 hook 为什么只能放在组件顶层？
+
+React 使用**链表结构**来跟踪和管理组件内的**所有 Hook**。每次渲染时，React 会严格按 Hook 1 → Hook 2 → Hook 3 的**顺序**读取状态。如果顺序变化（如因条件语句或循环导致），React 将无法正确匹配状态，引发逻辑错误。
+
+```JS
+const [a, setA] = useState(1);  // Hook 1
+if (condition) {
+  const [b, setB] = useState(2); // Hook 2
+}
+const [c, setC] = useState(3);   // Hook 3
+// 假设第一次渲染时条件为真，调用顺序为Hook1 →  Hook2
+// 第二次渲染时，若 condition 变为假，调用顺序变为 Hook 1 → Hook 3。
+// 此时 React 会误认为：Hook 3 对应第一次渲染的 Hook 2 的状态，导致数据错乱。
+```
+
+通过这种机制，React 保证了函数组件状态的**可预测性和稳定性**，避免了因代码结构变化引发的隐蔽错误。
