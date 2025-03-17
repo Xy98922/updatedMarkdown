@@ -379,3 +379,110 @@ function findMostTagname() {
   }
 }
 ```
+
+## 手写 Promise
+
+```js
+class MyPromise {
+  constructor(executor) {
+    this.state = "pending"; // 初始状态：pending
+    this.value = undefined; // 成功的结果值
+    this.reason = undefined; // 失败的原因
+    this.onFulfilledCallbacks = []; // 成功回调队列
+    this.onRejectedCallbacks = []; // 失败回调队列
+
+    const resolve = (value) => {
+      if (this.state === "pending") {
+        this.state = "fulfilled";
+        this.value = value;
+        // 异步执行所有成功回调
+        this.onFulfilledCallbacks.forEach((fn) => fn());
+      }
+    };
+
+    const reject = (reason) => {
+      if (this.state === "pending") {
+        this.state = "rejected";
+        this.reason = reason;
+        // 异步执行所有失败回调
+        this.onRejectedCallbacks.forEach((fn) => fn());
+      }
+    };
+
+    try {
+      // 立即执行执行器函数
+      executor(resolve, reject);
+    } catch (err) {
+      reject(err); // 捕获执行器中的同步错误
+    }
+  }
+
+  then(onFulfilled, onRejected) {
+    // 处理 then 的参数为可选的情况
+    onFulfilled =
+      typeof onFulfilled === "function" ? onFulfilled : (value) => value;
+    onRejected =
+      typeof onRejected === "function"
+        ? onRejected
+        : (reason) => {
+            throw reason;
+          };
+
+    const promise2 = new MyPromise((resolve, reject) => {
+      const handleFulfilled = () => {
+        // 使用微任务模拟异步执行
+        queueMicrotask(() => {
+          try {
+            const x = onFulfilled(this.value);
+            resolvePromise(promise2, x, resolve, reject);
+          } catch (err) {
+            reject(err);
+          }
+        });
+      };
+
+      const handleRejected = () => {
+        queueMicrotask(() => {
+          try {
+            const x = onRejected(this.reason);
+            resolvePromise(promise2, x, resolve, reject);
+          } catch (err) {
+            reject(err);
+          }
+        });
+      };
+
+      if (this.state === "fulfilled") {
+        handleFulfilled();
+      } else if (this.state === "rejected") {
+        handleRejected();
+      } else {
+        // pending
+        this.onFulfilledCallbacks.push(handleFulfilled);
+        this.onRejectedCallbacks.push(handleRejected);
+      }
+    });
+
+    return promise2;
+  }
+
+  catch(onRejected) {
+    return this.then(null, onRejected);
+  }
+}
+
+// 处理 then 返回值的通用函数
+function resolvePromise(promise2, x, resolve, reject) {
+  // 避免循环引用
+  if (promise2 === x) {
+    return reject(new TypeError("Chaining cycle detected for promise"));
+  }
+
+  // 如果 x 是 Promise 实例，则等待其状态变化
+  if (x instanceof MyPromise) {
+    x.then(resolve, reject);
+  } else {
+    resolve(x); // 直接返回值
+  }
+}
+```
