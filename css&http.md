@@ -780,3 +780,25 @@
   <dt>history模式: </dt>
   <dd>方法history.pushState()、replaceState()、popstate()：</dd><dd>history.pushState会追加历史记录，并更换地址栏地址信息，但是页面不会刷新，需要手动调用地址变化之后的处理函数，并在处理函数内部决定跳转逻辑；监听popstate事件是为了响应浏览器的前进后退功能(不能监听地址栏改变事件)</dd>
 <dl>
+
+## HTTP 缓存
+
+```mermaid
+graph TD
+    A[用户请求资源] --> B{是否存在Cache-Control/ Expires 缓存？}
+    B -->|是| C{缓存是否过期?}
+    B -->|否| I[向服务器请求资源]
+    C -->|否| D[直接使用缓存内容]
+    D --> M
+    C -->|是| E{是否存在ETag?}
+    E -->|是| F[向服务器请求If-None-Match]
+    E -->|否| G{是否存在Last-Modified?}
+    G -->|是| H[向服务器请求If-Modified-Since]
+    F --> J{服务器返回状态码}
+    H --> J
+    J -->|304| K[读取本地缓存]
+    J -->|200| I
+    I --> L[请求响应，缓存协商]
+    L --> M[返回展示资源]
+    K --> M
+```

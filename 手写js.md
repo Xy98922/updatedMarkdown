@@ -148,20 +148,20 @@ Function.prototype.my_call = function (context) {
 ## 深克隆
 
 ```js
+// WeakMap 的 灵活运用
 function deepClone(obj: any, cache = new WeakMap()) {
   if (obj === null || typeof obj !== "object") {
     return obj;
   }
+  //WeakMap 缓存已拷贝对象，避免对象存在循环引用导致堆栈溢出
   if (cache.has(obj)) {
     return cache.get(obj);
   }
-  const clone: Record<string, any> = Array.isArray(obj) ? [] : {};
+  const clone = Array.isArray(obj) ? [] : {};
   cache.set(obj, clone);
-  for (const k in obj) {
-    if (obj.hasOwnProperty(k)) {
-      clone[k] = deepClone(obj[k], cache);
-    }
-  }
+  Object.keys(obj).forEach((key) => {
+    clone[k] = deepClone(obj[k], cache);
+  });
   return clone;
 }
 ```
