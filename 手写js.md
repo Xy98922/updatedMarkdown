@@ -105,14 +105,21 @@ function promiseAll(promiseList) {
     if (promiseList[Symbol.iterator] === undefined) {
       throw new TypeError(`argument must be a iterable object`);
     }
+    //以下只对数组这个情况讨论
     let resolvedCounter = 0;
+    // 处理空数组
+    if (promiseList.length === 0) {
+      resolve([]);
+      return;
+    }
     const result = [];
-    if (promiseList.length === 0 || promiseList.size === 0) resolve([]);
     for (let i = 0; i < promiseList.length; i++) {
+      //Promise.resolve包装非 Promise 值以兼容混合输入
       Promise.resolve(promiseList[i]).then(
         (value) => {
           resolvedCounter++;
           result[i] = value;
+          // 正确判断完成条件
           if (resolvedCounter === promiseList.length) {
             resolve(result);
           }
