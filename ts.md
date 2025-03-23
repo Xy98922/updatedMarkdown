@@ -186,6 +186,11 @@ type Result = Exclude<'a' | 'b' | 'c', 'a' | 'b'>; // 结果类型为 'c'
 
 ## TS 中`infer`的用法
 
+```js
+type E<T> = T extends (a: infer P) => infer R ? [P, R] : never;
+type F<T> = T extends Array<inter I> ? I :never;
+```
+
 | 用法                                               | 作用                      |
 | -------------------------------------------------- | ------------------------- |
 | `T extends Promise<infer R>`                       | 提取 Promise 的返回值类型 |
@@ -202,3 +207,29 @@ type Result = Exclude<'a' | 'b' | 'c', 'a' | 'b'>; // 结果类型为 'c'
 | 适用于   | 联合类型（`A \| B`）       | 对象类型                              |
 | 底层实现 | `T extends U ? never : T`  | `Pick<T, Exclude<keyof T, K>>`        |
 | 示例     | `Exclude<"a" \| "b", "a">` | `Omit<{ a: string; b: number }, "a">` |
+
+## implements VS. extends
+
+- `implements`：用于**类实现一个或多个接口**，确保类实现了接口声明的**所有方法和属性**。
+
+- `extends`：用于**继承类或继承接口**，可以用于**单一的类继承、接口继承或多重接口继承**。
+
+## type 与 interface 的区别
+
+### 1. **基本功能**
+
+- **interface**
+
+  - 专用于定义对象的结构
+  - 可以被继承和扩展(通过`extends')
+  - 支持实现类的契约(通过“implements')
+  - 支持声明合并（多个同名接口会合并）
+  - 更倾向于定义明确的形状或数据结构
+
+- **type**
+  - 更通用，除了定义对象结构，还可以用于创建联合类型、交叉类型、基本类型别名等
+  - 不支持直接扩展，但可以通过交叉类型(`&`)或者联合类型(`|`)来实现类似扩展的功能
+  - 不支持声明合并
+  - 用于更灵活或复杂的类型定义
+
+###
