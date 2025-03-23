@@ -827,7 +827,7 @@ Webpack 的运作可以大致分为以下几个阶段：
 
 ---
 
-### 简单示例
+#### 简单示例
 
 假设有如下简单配置：
 
@@ -855,7 +855,12 @@ module.exports = {
     ],
   },
   plugins: [
-    // 可以配置各种插件，如 HtmlWebpackPlugin 等
+    new HtmlWebpackPlugin({
+      template: "./src/index.html",
+    }),
+    new MiniCssExtractPlugin({
+      filename: "[name].[contenthash].css",
+    }),
   ],
 };
 ```
@@ -869,12 +874,64 @@ module.exports = {
 
 ---
 
-### 总结
+#### 总结
 
 - **Webpack 是一个强大的模块打包器**，它将所有资源视为模块，通过 Loader 和插件系统处理和转换，然后将它们合并成最终的静态文件。
 - **其底层流程** 包括配置读取、依赖图构建、模块转换、chunk 和 bundle 生成以及插件介入各个构建环节。
 - 这种模块化的打包方式使得前端开发能够更高效地管理依赖、优化性能并实现代码拆分和懒加载等高级特性。
   ![alt text](./images/webpack.svg)
+
+### webpack 的配置有哪些？
+
+- **entry**: 入口文件地址。可以是单个，可以是多个。
+- **output**: 输出的内容，path,filename,publicPath
+- **module**: loaders, 将文件内容转换进行转译、编译
+- **plugin**: 对打包流程的干预和增加,通过 Webpack 提供的生命周期钩子，添加自定义逻辑（如优化、资源管理）。
+- **resolve**:
+  - 路径别名(`resolve{alias:{'@': **}}`)
+  - 扩展名 `extensions:['.ts', '.tsx', '.vue']`;导入的时候省略文件后缀
+  - 主文件名：`mainFiles: ['index', 'main']`,指定目录下的默认入口文件名
+  - 模块搜索目录：`modules: [ 'node_modules']`
+- **externals**: 不需要打包的 module
+- **devServer**: port
+- **optimization**: chunk, cacheGroup
+
+### loader 与 plugin 的区别
+
+- loader 更专注于文件的转换，**是转换器**，让 webpack 处理非 JS 模块，一般在固定的流程（打包文件之前）起作
+  用
+- p1ugin 更专注于流程的扩展，**是扩展器**。让输出资源的能力更丰富，在整个生命周期里，都起作用
+
+### webpack 指纹占位符
+
+- ext: 资源的后缀名
+- name: 文件的名字
+- path: 文件的相对路径
+- folder: 文件所在文件夹
+- hash: 每次构建的时候，任何一点改动，整个项目的 hash 都会变
+- chunkhash: 只在当前 chunk 有改动的时候，hash 会变
+- contenthash: 根据文件的内容，决定是否改变
+
+### 怎么理解 chunk 与 bundle
+
+Module（源码） → Webpack 处理 → Chunk（中间代码块） → 优化打包 → Bundle（最终文件）
+
+- chunk: 构建流程的产物
+- bundle: 最终的产物
+
+### webpack 的 tree shaking 的原理
+
+- `usedExports`: 会有一些导入但未使用
+- `sideEffects`: 导出了但未使用；
+- `dead code elimination`: 最终在产物里，删除一些死代码。`if(true)`
+
+### 如何减小 webpack 打包后的体积/性能优化
+
+- code spliting 非首屏加载的数据，先排除掉。
+- tree shaking
+- 压缩
+- 按需引入
+- CDN 加速
 
 ## <a href="https://juejin.cn/post/7283682738497765413?searchId=20250228175028AB78D75C81CADE4E2D7C">Webpack VS Vite</a>
 
