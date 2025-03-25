@@ -81,3 +81,9 @@ const [c, setC] = useState(3);   // Hook 3
 ```
 
 通过这种机制，React 保证了函数组件状态的**可预测性和稳定性**，避免了因代码结构变化引发的隐蔽错误。
+
+## useTransition
+
+useTransition 是一个帮助你在不阻塞 UI 的情况下更新状态的 React Hook。
+
+React 会利用 Fiber 架构将 useTransition 标记的更新设为低优先级任务，并在后台分片执行。

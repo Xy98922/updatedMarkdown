@@ -126,7 +126,7 @@ function trigger(target, key) {
 }
 ```
 
-#### whenDepsChange() 函数
+#### whenDepsChange(updateFn) 函数 也可以视为 watchEffect(updateFn),computed(updateFn)
 
 ```js
 function whenDepsChange(update) {
@@ -148,6 +148,33 @@ function whenDepsChange(update) {
 
 > 内存泄漏是指程序中已经不再使用的数据或对象没有被释放，导致这些内存空间无法被回收利用，从而在程序运行过程中逐渐占用越来越多的内存资源。长时间运行后，这种“未释放”的内存会积累，可能会导致程序性能下降、内存耗尽，甚至引发程序崩溃。
 
+## template VS. JSX return()
+
+### JSX
+
+虚拟 DOM 在 React 和大多数其他实现中都是**纯运行时**的：更新算法无法预知新的虚拟 DOM 树会是怎样，因此它**总是需要遍历整棵树**
+
+### template
+
+Vue 框架同时控制着**编译器**和**运行时**，这使得我们可以为紧密耦合的模板渲染器应用许多**编译时优化**。包括：
+
+1. 缓存静态内容
+
+2. 更新类型标记
+
+   ```HTML
+   <!-- 仅含 class 绑定 -->
+   <div :class="{ active }"></div>
+
+   <!-- 仅含 id 和 value 绑定 -->
+   <input :id="id" :value="value" />
+
+   <!-- 仅含文本子节点 -->
+   <div>{{ dynamic }}</div>
+   ```
+
+3. 树结构打平
+
 ## 渲染机制
 
 Vue 组件挂载时会发生如下几件事：
@@ -159,11 +186,3 @@ Vue 组件挂载时会发生如下几件事：
 3. **更新**：当一个依赖发生变化后，副作用会重新运行，这时候会创建一个更新后的虚拟 DOM 树。运行时渲染器遍历这棵新树，将它与旧树进行比较，然后将必要的更新应用到真实 DOM 上去。
 
 ![alt text](./images/vue渲染机制.png)
-
-### 渲染优化
-
-1. 缓存静态内容
-
-2. 更新类型标记
-
-3. 树结构打平
