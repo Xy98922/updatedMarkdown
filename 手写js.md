@@ -493,3 +493,53 @@ function resolvePromise(promise2, x, resolve, reject) {
   }
 }
 ```
+
+## 控制最大并发数
+
+```js
+class ConcurrencyQueue {
+  constructor(max) {
+    this.max = max;
+    this.queue = [];
+    this.running = 0;
+  }
+  enqueue(fn) {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ fn, resolve, reject });
+      this.excute();
+    });
+  }
+  excute() {
+    while (this.queue.length && this.running < this.max) {
+      const { fn, resolve, reject } = this.queue.shift();
+      this.running++;
+      fn()
+        .then(
+          (val) => resolve(val),
+          (err) => reject(err)
+        )
+        .finally(() => {
+          this.running--;
+          this.excute();
+        });
+    }
+  }
+}
+```
+
+## 请求去抖
+
+```js
+let controller: AbortController | null = null;
+function debounceRequest(url: string, callBack: Function): void {
+  if (controller) {
+    controller.abort();
+  }
+  controller = new AbortController();
+  fetch(url, { signal: controller.signal })
+    .then(callBack)
+    .finally(() => {
+      controller = null;
+    });
+}
+```
