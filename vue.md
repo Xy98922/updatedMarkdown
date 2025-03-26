@@ -31,11 +31,116 @@ Object.defineProperty(obj,'count',{
 console.log(double)  // 打印2
 obj.count = 2
 console.log(double) // 打印4  有种自动变化的感觉
-```
-
-```JS
 delete obj.count
 console.log(double) // doube还是4
+```
+
+### Vue3 reactive
+
+```js
+const reactiveMap = new WeakMap();
+
+function reactive(target) {
+  // 如果 target 不是对象，直接返回
+  if (typeof target !== "object" || target === null) {
+    return target;
+  }
+
+  // 如果 target 已经被代理，直接返回已有的代理对象
+  const existingProxy = reactiveMap.get(target);
+  if (existingProxy) {
+    return existingProxy;
+  }
+
+  const proxy = new Proxy(target, {
+    get(target, key, receiver) {
+      // 收集依赖：调用 track() 函数
+      track(target, key);
+
+      // 递归处理嵌套对象，返回 reactive 代理对象
+      const result = Reflect.get(target, key, receiver);
+      return typeof result === "object" && result !== null
+        ? reactive(result)
+        : result;
+    },
+    set(target, key, value, receiver) {
+      const oldValue = target[key];
+      const result = Reflect.set(target, key, value, receiver);
+
+      // 如果值有变化，触发依赖更新
+      if (oldValue !== value) {
+        trigger(target, key);
+      }
+      return result;
+    },
+    deleteProperty(target, key) {
+      const result = Reflect.deleteProperty(target, key);
+      trigger(target, key);
+      return result;
+    },
+  });
+
+  // 缓存该代理对象
+  reactiveMap.set(target, proxy);
+  return proxy;
+}
+```
+
+### Vue3 ref
+
+```js
+// 判断值是否发生了变化（简单版）
+function hasChanged(newVal, oldVal) {
+  return newVal !== oldVal;
+}
+
+// 将值转换为响应式对象（如果是对象的话）
+function convert(value) {
+  return typeof value === "object" && value !== null ? reactive(value) : value;
+}
+
+// 模拟依赖收集与触发更新的函数（实际实现会更复杂）
+function trackRefValue(ref) {
+  // 假设 activeEffect 为当前正在执行的副作用函数
+  if (activeEffect) {
+    ref.dep.add(activeEffect);
+  }
+}
+
+function triggerRefValue(ref) {
+  ref.dep.forEach((effect) => effect());
+}
+
+// Ref 的实现类
+class RefImpl {
+  constructor(value) {
+    this._rawValue = value;
+    this._value = convert(value);
+    this.dep = new Set(); // 存储依赖（副作用函数）
+    this.__v_isRef = true; // 标记为 ref
+  }
+
+  get value() {
+    // 读取时收集依赖
+    trackRefValue(this);
+    return this._value;
+  }
+
+  set value(newVal) {
+    if (!hasChanged(newVal, this._rawValue)) {
+      return;
+    }
+    this._rawValue = newVal;
+    this._value = convert(newVal);
+    // 触发依赖更新
+    triggerRefValue(this);
+  }
+}
+
+// ref 函数返回一个 RefImpl 的实例
+function ref(value) {
+  return new RefImpl(value);
+}
 ```
 
 ## 深入响应式原理

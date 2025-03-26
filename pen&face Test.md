@@ -933,6 +933,22 @@ Module（源码） → Webpack 处理 → Chunk（中间代码块） → 优化�
 - 按需引入
 - CDN 加速
 
+## Source Map（源码映射）
+
+是一种连接压缩/编译后代码与原始源代码的 JSON 文件，devtool 可通过 source map 将优化后的代码逆向映射回可读的源码形式
+
+## 代码分割
+
+- 入口点分割：为每个入口点生成独立的 bundle。
+
+- 按需加载（Lazy Loading）：通过动态 import() 按需加载模块。
+
+- 共享块分割：提取公共依赖模块，避免重复加载。
+
+- 提取第三方库（Vendor Chunk）：将第三方库提取到单独的文件，提高缓存效率。
+
+- 多页面应用（MPA）：为多个页面生成独立的 chunk 文件。
+
 ## <a href="https://juejin.cn/post/7283682738497765413?searchId=20250228175028AB78D75C81CADE4E2D7C">Webpack VS Vite</a>
 
 ## 模块联邦 ​
