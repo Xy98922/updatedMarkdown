@@ -867,6 +867,34 @@ new React().arrow();
   > > finally()方法返回一个 Promise。在 promise 结束时，无论结果是 fulfilled 或者是 rejected，都会执行指定的回调函数。这为在 Promise 是否成功完成后都需要执行的代码提供了一种方式。
   > > 这避免了同样的语句需要在 then() 和 catch() 中各写一次的情况
 
+### 总结对比
+
+1. `Promise.any`: 第一个成功或者全部失败
+
+   ```js
+   //全部失败返回
+   return Promise.reject({
+     errors: [1, 2],
+     message: "All promises were rejected",
+     stack: "AggregateError: All promises were rejected",
+   });
+   ```
+
+2. `Promise.race`: 第一个敲定的
+3. `Promise.all`: 全部成功或任意一个失败
+
+   ```js
+   //全部成功返回
+   return Promise.resolve([1, 2, 3]);
+   ```
+
+4. `Promise.allSettled`：全部状态敲定
+
+   ```js
+   //全部敲定返回
+   return Promise.resolve([{ status: "rejected" / "fulfilled", reason/value: 1 }]);
+   ```
+
 ## 作用域概述
 
 在 JavaScript 中，**作用域**决定了变量、函数或对象在代码中的可访问范围(可以这样理解：有且仅在作用域内，无论在何处声明了变量，在该作用域所有地方都能知道这个变量存在，"存在"表明 js 能够知道该变量并非为`* is not defined`)。
