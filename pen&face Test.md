@@ -919,11 +919,15 @@ Module（源码） → Webpack 处理 → Chunk（中间代码块） → 优化�
 - chunk: 构建流程的产物
 - bundle: 最终的产物
 
-### webpack 的 tree shaking 的原理
+### webpack 的 tree shaking 的原理(仅适用与 ES6 模块)
 
-- `usedExports`: 会有一些导入但未使用
-- `sideEffects`: 导出了但未使用；
-- `dead code elimination`: 最终在产物里，删除一些死代码。`if(true)`
+1. 构建依赖图
+   Webpack 解析入口文件及所有依赖，通过**静态分析生成模块依赖图**。
+2. 标记导出
+   对于每个模块，Webpack 根据依赖图**确定哪些导出被引用**。未被引用的导出就被认为是“dead code”
+3. 压缩阶段移除死代码
+   在**代码压缩阶段**（例如使用 Terser），这些死代码会**被实际移除，**生成最终的打包文件。
+4. 被标记为 sideEffects 的模块只要被导入（即使未使用其导出），其中的顶层副作用代码（如 console.log）会被保留并执行。
 
 ### 如何减小 webpack 打包后的体积/性能优化
 
