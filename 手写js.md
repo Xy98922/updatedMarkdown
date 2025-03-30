@@ -198,18 +198,16 @@ Function.prototype.my_apply = function (context) {
 };
 ```
 
-## 寄生式组合继承
+## 寄生式组合继承(手写 extends)
+
+![alt text](./images/extends.jpg)
 
 ```js
-function inherit1() {
-  function inheritPrototype(subType, superType) {
-    subType.prototype = Object.create(superType.prototype);
-    subType.prototype.constructor = subType;
-  }
-  function subType() {
-    superType.call(this); // 函数执行前面无点，this为Window，所以用call来转移this，入口参数的this，为new出来的新对象
-  }
+function Child() {
+  Parent.call(this);
 }
+Child.prototype = Object.create(Parent.prototype);
+Child.prototype.constructor = Child;
 ```
 
 ## 组合继承
