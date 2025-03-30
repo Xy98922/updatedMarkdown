@@ -851,21 +851,27 @@ new React().arrow();
   > > 返回一个 promise，该 promise 在所有 promise 都敲定后完成，并兑现一个对象数组，其中的对象对应每个 promise 的结果
 
 - 实例方法
-  1、**Promise.prototype.then**
 
-  > > - 如果 then(...)执行返回值是一个非 Promsie 类型的数据(return 520;)，则 then(...)函数执行返回 Promsie{state：fulfilled，value：520}
-  > > - 如果 then(...)执行返回值是一个 Promsie 对象，则 then(...)函数执行返回一个 Promise 对象，其状态取决于 return 的‘Promsie’对象的状态;返回的 Promise 的值也就是 return ‘Promsie’的值
-  > > - then(...)执行报错，则会返回一个 Promsie{state：rejected，value：错误原因}
-  > >   **_补充：返回一个 promise 的好处：方便链式调用(数组方法 map 也返回一个数组，方便链式调用)_**
+1. **Promise.prototype.then**
+   返回一个 Promise 对象（称之为 p），p 的行为取决于处理函数的执行结果，**注意：与处理函数是 onresolved 或 onrejected 无关，只跟函数的执行结果有关**：如果处理函数
 
-  2、**Promise.prototype.catch**
+   - 返回一个值：p 以该返回值作为其兑现值。
+   - 没有返回任何值：p 以 undefined 作为其兑现值。
+   - 抛出一个错误：p 抛出的错误作为其拒绝值。
+   - 返回一个已兑现的 Promise 对象：p 以该 Promise 的值作为其兑现值。
+   - 返回一个已拒绝的 Promise 对象：p 以该 Promise 的值作为其拒绝值。
+   - 返回另一个待定的 Promise 对象：p 保持待定状态，并在该 Promise 对象被兑现/拒绝后立即以该 Promise 的值作为其兑现/拒绝值。
 
-  > > **catch 方法是.then(null, rejection)或.then(undefined, rejection)的别名** > > &nbsp; > > **catch 能捕获的错误**有：一个 rejected 的 Promise 和**在 resolve()/reject()前面**抛出的**同步**错误
+   **_补充：返回一个 promise 的好处：方便链式调用(数组方法 map 也返回一个数组，方便链式调用)_**
 
-  3、Promise.prototype.finally()
+2. **Promise.prototype.catch**
 
-  > > finally()方法返回一个 Promise。在 promise 结束时，无论结果是 fulfilled 或者是 rejected，都会执行指定的回调函数。这为在 Promise 是否成功完成后都需要执行的代码提供了一种方式。
-  > > 这避免了同样的语句需要在 then() 和 catch() 中各写一次的情况
+   **catch 方法是.then(null, rejection)或.then(undefined, rejection)的别名** > > &nbsp; > > **catch 能捕获的错误**有：一个 rejected 的 Promise 和**在 resolve()/reject()前面**抛出的**同步**错误
+
+3. Promise.prototype.finally()
+
+> > finally()方法返回一个 Promise。在 promise 结束时，无论结果是 fulfilled 或者是 rejected，都会执行指定的回调函数。这为在 Promise 是否成功完成后都需要执行的代码提供了一种方式。
+> > 这避免了同样的语句需要在 then() 和 catch() 中各写一次的情况
 
 ### 总结对比
 
