@@ -291,3 +291,25 @@ Vue 组件挂载时会发生如下几件事：
 3. **更新**：当一个依赖发生变化后，副作用会重新运行，这时候会创建一个更新后的虚拟 DOM 树。运行时渲染器遍历这棵新树，将它与旧树进行比较，然后将必要的更新应用到真实 DOM 上去。
 
 ![alt text](./images/vue渲染机制.png)
+
+## 响应式解构
+
+### props 解构
+
+Vue 对 props 做了特殊处理：
+
+props 会被包裹在一个 只读的 Proxy 对象 中（通过 shallowReadonly 实现）。
+
+props 的响应式是**浅层（Shallow）**的：只有直接访问 props 的顶层属性会触发响应式，嵌套对象的属性默认不会自动追踪。
+
+```js
+const { foo } = defineProps(["foo"]);
+
+watchEffect(() => {
+  // 在 3.5 之前只运行一次
+  // 在 3.5+ 中在 "foo" prop 变化时重新执行
+  console.log(foo);
+});
+```
+
+- 在 3.4 及以下版本，foo 是一个实际的常量，永远不会改变。
