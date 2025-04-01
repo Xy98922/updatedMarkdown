@@ -292,7 +292,79 @@ Vue 组件挂载时会发生如下几件事：
 
 ![alt text](./images/vue渲染机制.png)
 
-## 响应式解构
+## 侦听器与响应式解构
+
+### 用 watchEffect 与 watch 来理解响应式
+
+- watchEffect: ==立即==运行一个函数，同时响应式地追踪其依赖，并在依赖更改时重新执行。
+
+  - 侦听 ref
+
+  ```js
+  const count = ref(0);
+
+  watchEffect(() => console.log(count.value));
+  // -> 输出 0
+
+  count.value++;
+  // -> 输出 1
+  ```
+
+  这里的时候追踪依赖的时候触发了 count 的 `get value(){}`，所以后续 `set value(){}` 的时候，能触发其副作用
+
+  举个反例
+
+  ```js
+  let count = ref(0);
+
+  watchEffect(() => console.log(count));
+  // -> 输出 count这个ref
+
+  count.value++;
+  count = ref(100);
+  // -> 都不会输出，因为读取count本身没有get 或者 set 所以不会有副作用的收集与触发
+  ```
+
+  - 侦听 reactive
+    侦听器会自动启用深层模式，会侦听响应式对象的所有属性，包括嵌套属性
+
+- watch：侦听一个或多个响应式数据源，并在数据源变化时调用所给的回调函数。默认是**懒侦听**的，即**仅在侦听源发生变化时**才执行回调函数。
+
+  - 侦听 ref
+
+  ```js
+  const count = ref(0);
+
+  watch(count, (count) => console.log(count));
+  // -> 不输出
+
+  count.value++;
+  // -> 输出 1
+  ```
+
+  举个反例
+
+  ```js
+  const count = ref(0);
+
+  watch(count.value, (count) => console.log(count));
+  //[Vue warn]: Invalid watch source:  0 A watch source can only be a getter/effect function, a ref, a reactive object, or an array of these types.
+  ```
+
+  - 侦听 reactive
+    侦听器会自动启用深层模式，会侦听响应式对象的所有属性，包括嵌套属性
+
+- 总结：
+
+  1. watchEffect：对于 ref ，需要使用`.value`，对于 reactive，如果没有指定侦听的属性，那么则侦听其所有属性，包括嵌套属性。
+
+  2. watch：因为限定了第一个入参的条件：
+
+  - 一个函数，返回一个值
+  - 一个 ref
+  - 一个响应式对象
+  - ...或是由以上类型的值组成的数组
+    所以会自行收集对 ref 的 value 依赖，对于 reactive 表现与 watchEffect 一致
 
 ### props 解构
 
@@ -302,14 +374,34 @@ props 会被包裹在一个 只读的 Proxy 对象 中（通过 shallowReadonly 
 
 props 的响应式是**浅层（Shallow）**的：只有直接访问 props 的顶层属性会触发响应式，嵌套对象的属性默认不会自动追踪。
 
-```js
-const { foo } = defineProps(["foo"]);
+**为什么解构后会失去响应式？**
 
+- 在 3.4 及以下版本，name 是一个实际 string 的常量，永远不会改变。
+
+```js
+const { name } = defineProps<name:string>();
 watchEffect(() => {
   // 在 3.5 之前只运行一次
   // 在 3.5+ 中在 "foo" prop 变化时重新执行
   console.log(foo);
 });
+watch(()=>foo,(foo)=>console.log(foo)) //在3.5之前，foo改变不会执行，但是3.5之后会
+watch(foo,(foo)=>console.log(foo))  //无论3.5之前或者之后都会报错
 ```
 
-- 在 3.4 及以下版本，foo 是一个实际的常量，永远不会改变。
+- 在 3.5 及以上版本，当在同一个 `<script setup>`代码块中访问由 defineProps 解构的变量时，Vue 编译器会自动在前面添加 props.
+
+  因此，上面的代码等同于以下代码：
+
+  ```js
+  const props = defineProps(["foo"]);
+
+  watchEffect(() => {
+    // `foo` 由编译器转换为 `props.foo`
+    console.log(props.foo); //可以进行依赖收集
+  });
+  watch(
+    () => props.foo,
+    (foo) => console.log(foo)
+  );
+  ```
