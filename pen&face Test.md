@@ -1189,3 +1189,44 @@ graph TD
     N --> O[执行JavaScript]
     O --> P[事件处理与交互]
 ```
+
+## 变量提升的优先级与覆盖规则
+
+```js
+function fn(x) {
+  console.log(x);
+  var x = 100;
+  function x() {}
+  console.log(x);
+}
+fn(5);
+```
+
+### 提升范围
+
+- 变量提升范围为变量存在的作用域
+- 函数声明提升在函数作用域，但在块内或块外访问的结果不同
+
+  ```js
+  function add(a, b) {
+    console.log(e); // => undefined
+    e(); // => 报错 e is not a function
+    if (a > b) {
+      e(); // => 打印‘done’
+      function e() {
+        console.log("done");
+      }
+    }
+  }
+  ```
+
+### 不同类型变量的提升表现
+
+- ​var 变量：声明被提升，初始化为 undefined。
+- let/const 变量：声明被提升，但进入暂时性死区（TDZ）​，声明前访问会抛出 ReferenceError。
+- 函数声明：整体（包括函数体）被提升，可在声明前调用。
+- 函数表达式：仅变量声明提升（如 `var/let func=()=>{}`），函数体赋值留在原地。
+
+### 优先级：函数声明>入参>变量
+
+当**入参**与**函数声明**与**变量**(==var 变量才能同名，let/const 不能同名==)同名时
