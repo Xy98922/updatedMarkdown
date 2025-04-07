@@ -815,3 +815,63 @@ HTTPS 建立安全连接的核心在于 TLS/SSL 握手过程，其主要步骤�
 ![alt text](./images/数字证书校验.jpeg)
 
 ![alt text](./images/数字证书.jpeg)
+
+## 如何实现主题切换
+
+### 原生 CSS 属性
+
+- color-scheme:只影响浏览器自带 UI 的配色
+
+  - 值为 light 就是明亮主题
+  - 值为 night 就是暗黑主题
+  - 值为 light dark 就是系统当前主题
+
+  ```css
+  :root {
+    color-scheme: light dark;
+  }
+  ```
+
+- prefers-color-scheme: 媒体查询，匹配当前系统主题
+
+  ```css
+  @media (prefers-color-scheme: dark) {
+    .theme {
+      color: red;
+      background-color: aqua;
+    }
+  }
+
+  @media (prefers-color-scheme: light) {
+    .theme {
+      color: black;
+      background-color: lavenderblush;
+    }
+  }
+  ```
+
+### ​CSS 变量动态切换 ​（主流方案）
+
+```css
+:root[data-theme="light"] {
+  --background-color: #f0f8ff;
+  --text-color: #333;
+}
+
+:root[data-theme="dark"] {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+}
+
+.container {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+```
+
+- 跟随系统：`matchMedia('(prefers-color-scheme: light)')`
+- 响应式主题：`useContext`,`localStorage`,`pinia`
+
+### CSS-in-JS
+
+React 生态、组件库深度定制
