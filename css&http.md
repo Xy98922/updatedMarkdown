@@ -673,7 +673,7 @@
 
 > 防范
 >
-> - 不用`innerHTML`用`innerText`
+> - 不用`innerHTML`用`innerText`; 避免使用`eval`
 > - 如果用 Vue/React 技术栈，并且不使用 v-html/dangerouslySetInnerHTML 功能，就在前端 render 阶段避免 innerHTML、outerHTML 的 XSS 隐患。
 
 ## <a href='https://zh.wikipedia.org/wiki/%E8%B7%A8%E7%AB%99%E8%AF%B7%E6%B1%82%E4%BC%AA%E9%80%A0#%E6%B7%BB%E5%8A%A0%E6%A0%A1%E9%A9%97token'>CSRF</a>
@@ -692,7 +692,7 @@
 >   - 适用于防止表单和 AJAX 请求被伪造。
 > - **设置 SameSite Cookie 属性**
 >   - 利用浏览器机制限制跨站请求时 Cookie 的传递。
->   - 通过响应头设置 Cookie 的 sameSite 属性，推荐使用 Lax 或 Strict。
+>   - 通过响应头设置 Cookie 的 sameSite 属性，推荐使用 Lax 或 Strict。(在大多数用户主动导航的场景下允许 cookie 随请求发送（保证用户体验），而在隐式的跨站请求中阻断 cookie 传递（提升安全性），从而实现一种安全与兼容性之间的平衡。)
 >   - 主要从网络传输层面降低 CSRF 攻击风险。
 
 ## JS 获取元素的大小（高度和宽度）
