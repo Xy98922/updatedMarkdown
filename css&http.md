@@ -875,3 +875,94 @@ HTTPS 建立安全连接的核心在于 TLS/SSL 握手过程，其主要步骤�
 ### CSS-in-JS
 
 React 生态、组件库深度定制
+
+## 保证元素宽高比不变
+
+1. 针对图片
+
+   ```css
+   img {
+     max-width: 100%;
+     height: auto;
+   }
+   ```
+
+2. 利用 CSS `aspect-ratio`
+
+   ```css
+   .container {
+     width: 100%;
+     aspect-ratio: 16 / 9; /* 直接声明宽高比 */
+   }
+   /* 图片比例不变 */
+   .container img {
+     width: 100%;
+     height: 100%;
+     object-fit: fill; /* 或 contain，根据需求选择 */
+   }
+   ```
+
+3. 利用 padding 百分比特性
+
+   ```css
+   .container {
+     width: 100%; /* 或者具体 px/rem 等 */
+     height: 0;
+     padding-bottom: 75%;
+     position: relative;
+     overflow: hidden;
+   }
+   .container img {
+     position: absolute;
+     top: 0;
+     left: 0;
+     width: 100%;
+     height: 100%;
+     object-fit: fill;
+   }
+   ```
+
+   实现原理：<a href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_display/Containing_block">包含块</a>
+
+| **定位类型**             | **包含块规则**                                                      | **特殊触发条件**                  |
+| ------------------------ | ------------------------------------------------------------------- | --------------------------------- |
+| `static/relative/sticky` | 最近的块级祖先内容区 或 格式化上下文容器                            | 父元素为 Flex/Grid/Table 容器     |
+| `absolute`               | 最近的 `position≠static` 祖先的内边距区 或 特殊属性父元素的内边距区 | `transform`、`will-change` 等属性 |
+| `fixed`                  | 视口（浏览器窗口） 或 分页区域（打印）                              | 父元素含 `transform` 等属性       |
+
+### scss 与 sass
+
+- sass 不用分号和花括号
+- 后缀名不同
+- scss 更被广泛使用
+
+## less 与 scss
+
+- 变量的定义方式不同
+  less 用`@primary-color: #00c;` 而 scss 用`$primary-color: #00c;`
+
+- SCSS 除了具备 Less 的基本功能外，还内置了条件语句（if/else）、循环（for、while、each）等控制结构，使得处理复杂样式逻辑时更加灵活和强大
+
+- Mixin(将可复用的样式代码块封装成独立模块) 方式不同
+
+  ```less
+  /* Less */
+  .text-style(@size: 14px, @color: #333) {
+    font-size: @size;
+    color: @color;
+  }
+  .title {
+    .text-style(@size: 25px, @color: red);
+  }
+  ```
+
+  ```scss
+  /* Scss */
+  @mixin text-style($size: 14px, $color: #333) {
+    font-size: $size;
+    color: $color;
+  }
+  .title {
+    @include text-style($size: 25px, $color: red);
+  }
+  ```
