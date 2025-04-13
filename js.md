@@ -127,6 +127,23 @@ console.log(5);
 
 ---
 
+## requestAnimationFrame 与 requestIdleCallback 的运行时机
+
+1. **requestAnimationFrame（rAF）**  
+   • **运行时机**：在浏览器的**渲染阶段（Rendering Phase）**，具体位于以下两个关键节点之间：  
+    ◦ **微任务队列清空后**  
+    ◦ **布局（Layout）和绘制（Paint）前**  
+   • **核心作用**：确保动画、UI 更新等视觉操作与屏幕刷新率同步（如 60Hz 屏幕下每 16.6ms 执行一次），避免视觉撕裂。
+
+2. **requestIdleCallback（rIC）**  
+   • **运行时机**：在浏览器的**空闲阶段（Idle Phase）**，具体位于以下两个关键节点之间：  
+    ◦ **渲染阶段完成后**（包括布局、绘制、合成等）  
+    ◦ **下一轮事件循环开始前**  
+   • **核心作用**：在浏览器空闲时段执行低优先级任务（如日志上报、数据预加载），避免阻塞关键渲染流程。
+
+**结论**：  
+**requestAnimationFrame 先于 requestIdleCallback 执行**，因为 rAF 属于渲染阶段的早期操作，而 rIC 仅在渲染完成后的空闲时间触发。
+
 ## 数组常用的操作方法
 
 ?代表可选，thisValue 代表执行 callback 时，用于 this 的值。

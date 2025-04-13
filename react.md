@@ -34,6 +34,7 @@
   ![alt text](./images/fiber2.png)
   ![alt text](./images/fiber3.png)
   ![alt text](./images/fiber4.png)
+  ![alt text](./images/fiber5.png)
 
 - React 渲染两个核心阶段
 

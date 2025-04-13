@@ -966,3 +966,99 @@ React 生态、组件库深度定制
     @include text-style($size: 25px, $color: red);
   }
   ```
+
+## CSS module 的作用
+
+1. 样式隔离
+2. 模块化与代码结构优化(每个组件对应一个 CSS 文件)
+3. 支持动态样式
+
+## CSS-in-JS
+
+> CSS-in-JS 是一种将 CSS 样式直接嵌入 JavaScript/TypeScript 代码中的技术方案
+
+作用：
+
+1. 通过编译时或运行时生成唯一类名，确保样式仅作用于当前组件
+2. 支持通过 JavaScript 变量、函数或条件语句动态调整样式
+3. 样式与组件代码共存于同一文件，便于跨项目复用组件，无需额外管理 CSS 文件依赖
+
+## 如何实现水印
+
+在 Vue 框架中实现自制水印组件的核心思路是**利用 Canvas 生成水印图案，并通过动态样式覆盖页面内容**。以下是结合多个技术文档总结的实现方案，包含基础功能与防篡改优化：
+
+### 一、基础实现：Canvas 绘制与样式注入
+
+#### 1. **创建 Canvas 水印**
+
+通过 Canvas 绘制文本或图形，生成水印的 Base64 图片。核心参数包括文字内容、旋转角度、透明度等：
+
+```javascript
+const canvas = document.createElement("canvas");
+const ctx = canvas.getContext("2d");
+ctx.rotate((-30 * Math.PI) / 180); // 旋转角度
+ctx.font = "16px Arial";
+ctx.fillStyle = "rgba(0, 0, 0, 0.1)"; // 透明度控制
+ctx.fillText(text, canvas.width / 2, canvas.height / 2); // 居中绘制文本
+const base64 = canvas.toDataURL("image/png"); // 转为Base64背景图
+```
+
+#### 2. **动态注入水印层**
+
+将生成的 Base64 图片作为背景，创建一个覆盖全屏的`div`，并通过`pointer-events: none`避免阻挡交互：
+
+```html
+<template>
+  <div class="watermark" :style="watermarkStyle"></div>
+</template>
+<style>
+  .watermark {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-repeat: repeat; /* 可以不设置，默认值为repeat */
+    pointer-events: none; /* 穿透点击事件 */
+    z-index: 9999;
+  }
+</style>
+```
+
+#### 3. **组件参数化**
+
+通过 Props 支持自定义配置，如文本内容、尺寸、颜色等：
+
+```javascript
+props: {
+  text: { type: String, default: "内部文档" },
+  angle: { type: Number, default: -30 },
+  opacity: { type: Number, default: 0.1 }
+}
+```
+
+### 二、防篡改优化：MutationObserver 监听
+
+为防止用户通过开发者工具删除水印，需监听 DOM 变化并自动恢复水印：
+
+```javascript
+// 防篡改监听
+const initObserver = () => {
+  observer.value = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (Array.from(mutation.removedNodes).includes(watermarkDiv.value)) {
+        updateWatermark();
+      }
+    });
+  });
+
+  observer.value.observe(containerRef.value, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+  });
+};
+
+onMounted(initObserver);
+onUnmounted(() => observer.value?.disconnect());
+```
